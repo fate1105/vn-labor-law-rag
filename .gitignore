@@ -1,0 +1,21 @@
+# Dữ liệu — quá lớn để đưa lên Git, mỗi người tự tải/tạo lại bằng script
+data/raw/*.parquet
+data/raw/*.csv
+data/processed/*.csv
+data/processed/*.npy
+data/processed/*.parquet
+data/index/
+
+# Môi trường Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+
+# API key / biến môi trường bí mật — KHÔNG được commit
+.env
+
+# File tạm của hệ điều hành / editor
+.DS_Store
+.vscode/settings.json
