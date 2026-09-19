@@ -1,7 +1,7 @@
 """
-BƯỚC 1.2 — LÀM SẠCH & CHUẨN HÓA DỮ LIỆU
+TUẦN 4 — LÀM SẠCH & CHUẨN HÓA DỮ LIỆU
 ----------------------------------------------------
-Input:  data/raw/filtered_documents.csv   (từ bước 01)
+Input:  data/raw/filtered_documents.csv   (từ 1_filter.py)
 Output: data/processed/cleaned_documents.csv
 
 Các việc thực hiện:
@@ -9,6 +9,8 @@ Các việc thực hiện:
 - Chuẩn hóa Unicode tiếng Việt (tránh lỗi dấu bị tách rời).
 - Loại bỏ văn bản trùng lặp hoặc rỗng.
 - Chuẩn hóa cột ngày ban hành về định dạng thống nhất (YYYY-MM-DD).
+- Giữ nguyên các cột metadata quan trọng (doc_id, effect_status_source, ...)
+  để các bước sau (3_segment.py, 6_baseline_rag.py) sử dụng được.
 """
 
 import re
@@ -53,6 +55,7 @@ def main():
     df = pd.read_csv(INPUT_PATH, encoding="utf-8-sig")
     n_before = len(df)
 
+    # Làm sạch nội dung văn bản (chỉ áp dụng cho cột text/date)
     df["title"] = df["title"].apply(clean_text)
     df["content"] = df["content"].apply(clean_text)
     df["issue_date"] = df["issue_date"].apply(parse_date)
@@ -63,6 +66,8 @@ def main():
     # Loại bỏ trùng lặp theo nội dung
     df = df.drop_duplicates(subset=["content"])
 
+    # Lưu toàn bộ DataFrame — giữ nguyên tất cả cột từ 1_filter.py
+    # (doc_id, effect_status_source, matched_group, ... cần cho 3_segment.py)
     df.to_csv(OUTPUT_PATH, index=False, encoding="utf-8-sig")
 
     print(f"Trước làm sạch: {n_before} văn bản")

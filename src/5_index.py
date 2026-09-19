@@ -8,8 +8,8 @@ Kết quả dự kiến: hệ thống có khả năng truy hồi các Điều, K
 đến câu hỏi.
 
 Cách chạy:
-    python src/index.py                         # xây chỉ mục
-    python src/index.py "câu hỏi cần tra cứu"    # xây chỉ mục xong, tìm kiếm thử
+    python src/5_index.py                         # xây chỉ mục
+    python src/5_index.py "câu hỏi cần tra cứu"    # xây chỉ mục xong, tìm kiếm thử
 """
 
 import os

@@ -20,7 +20,7 @@ Cần cài đặt API key trước khi chạy:
     setx GEMINI_API_KEY "your-api-key"         (Windows, mở lại terminal sau khi setx)
 
 Cách chạy:
-    python src/baseline_rag.py "câu hỏi cần hỏi"
+    python src/6_baseline_rag.py "câu hỏi cần hỏi"
 """
 
 import sys
@@ -104,7 +104,7 @@ Câu hỏi: {query}"""
 
 def main():
     if len(sys.argv) < 2:
-        print('Cách dùng: python src/baseline_rag.py "câu hỏi cần hỏi"')
+        print('Cách dùng: python src/6_baseline_rag.py "câu hỏi cần hỏi"')
         return
 
     query = sys.argv[1]

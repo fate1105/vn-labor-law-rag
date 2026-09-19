@@ -6,14 +6,22 @@ Sinh viên: Trần Tấn Phúc — D22CNTT03 — GVHD: Nguyễn Trung Kiệt
 
 | Tuần | Nội dung | File | Trạng thái |
 |---|---|---|---|
-| 1 | Khảo sát nghiên cứu, hệ thống RAG pháp luật, kiểm tra hiệu lực | — (tài liệu) | Cần tự tổng hợp |
+| 1 | Khảo sát nghiên cứu, hệ thống RAG pháp luật, kiểm tra hiệu lực | — (tài liệu) | Đã tổng hợp |
 | 2 | Khảo sát cấu trúc metadata / content / relationships | — (khảo sát) | Đã xác định: dataset `th1nhng0/vietnamese-legal-documents` |
-| 3 | Lọc dữ liệu 3 nhóm nội dung (HĐLĐ, tiền lương, BHXH) | `src/filter.py` | Đã viết, đã tối ưu tốc độ |
-| 4 | Làm sạch metadata, chuẩn hóa nhãn, liên kết văn bản-HTML | `src/clean.py` | Đã viết & test OK |
-| 5 | Chunk hóa theo Chương/Điều/Khoản | `src/segment.py` | Đã viết & test OK |
-| 6 | Chọn mô hình embedding & tạo vector | `src/embed.py` | Đã viết (model: `bkai-foundation-models/vietnamese-bi-encoder`) |
-| 7 | Xây FAISS index & tìm kiếm ngữ nghĩa | `src/index.py` | Đã viết |
-| 8 | Baseline RAG — sinh câu trả lời kèm trích dẫn | `src/baseline_rag.py` | Đã viết (LLM: Gemini API, `gemini-2.5-flash`, có gói miễn phí) |
+| 3 | Lọc dữ liệu 3 nhóm nội dung (HĐLĐ, tiền lương, BHXH) | `src/1_filter.py` | Đã viết, đã tối ưu tốc độ, bổ sung logic ưu tiên |
+| 4 | Làm sạch metadata, chuẩn hóa nhãn, liên kết văn bản-HTML | `src/2_clean.py` | Đã viết & test OK, sửa bug mất cột |
+| 5 | Chunk hóa theo Chương/Điều/Khoản | `src/3_segment.py` | Đã viết & test OK, bổ sung regex loose + matched_group |
+| 6 | Chọn mô hình embedding & tạo vector | `src/4_embed.py` | Đã viết (model: `bkai-foundation-models/vietnamese-bi-encoder`) |
+| 7 | Xây FAISS index & tìm kiếm ngữ nghĩa | `src/5_index.py` | Đã viết |
+| 8 | Baseline RAG — sinh câu trả lời kèm trích dẫn | `src/6_baseline_rag.py` | Đã viết (LLM: Gemini API, `gemini-2.5-flash`, có gói miễn phí) |
+| 9 | Chuẩn hóa dữ liệu relationships, xác định loại và chiều quan hệ | `src/7_relationships.py` | Đã viết (5 nhóm: THAY_THE / SUA_DOI / BAI_BO / DAN_CHIEU / HUONG_DAN) |
+| 10 | Xây đồ thị NetworkX + lưu trữ SQLite, chức năng truy vấn | `src/8_build_graph.py` | Đã viết |
+| 11 | Mô-đun kiểm tra trạng thái hiệu lực và truy vết chuỗi quan hệ | `src/9_effect_checker.py` | Đã viết — EffectChecker class, check_effect_status(), check_chunks(), rerank |
+| 12 | Tích hợp mô-đun kiểm tra hiệu lực vào pipeline RAG | `src/10_effect_aware_rag.py` | Đã viết — Effect-Aware RAG với cảnh báo hiệu lực trong context |
+| 13 | Backend FastAPI và giao diện chatbot web | `src/web/` | Chưa viết |
+| 14 | Xây dựng bộ câu hỏi kiểm thử | `data/eval/` | Chưa viết |
+| 15 | Thực nghiệm + đánh giá so sánh | `src/11_evaluate.py` | Chưa viết |
+| 16 | Hoàn thiện, báo cáo, demo | — | Chưa viết |
 
 ## Cách chạy toàn bộ pipeline
 
@@ -21,22 +29,29 @@ Sinh viên: Trần Tấn Phúc — D22CNTT03 — GVHD: Nguyễn Trung Kiệt
 pip install -r requirements.txt
 
 # Tuần 3 — lọc dữ liệu (đọc từ data/raw/metadata.parquet, content.parquet)
-python src/filter.py
+python src/1_filter.py
 
 # Tuần 4 — làm sạch
-python src/clean.py
+python src/2_clean.py
 
 # Tuần 5 — chunk hóa
-python src/segment.py
+python src/3_segment.py
 
 # Tuần 6 — tạo embedding (lần đầu tự tải model ~500MB)
-python src/embed.py
+python src/4_embed.py
 
 # Tuần 7 — lập chỉ mục FAISS + thử tìm kiếm
-python src/index.py "Người lao động nghỉ việc trước thời hạn có được trợ cấp thôi việc không?"
+python src/5_index.py "Người lao động nghỉ việc trước thời hạn có được trợ cấp thôi việc không?"
 
 # Tuần 8 — chạy Baseline RAG hoàn chỉnh (cần đặt GEMINI_API_KEY trước)
-python src/baseline_rag.py "Người lao động nghỉ việc trước thời hạn có được trợ cấp thôi việc không?"
+python src/6_baseline_rag.py "Người lao động nghỉ việc trước thời hạn có được trợ cấp thôi việc không?"
+
+# Tuần 9 — chuẩn hóa relationships
+python src/7_relationships.py
+
+# Tuần 10 — xây đồ thị NetworkX + SQLite
+python src/8_build_graph.py
+python src/8_build_graph.py "<doc_id>"  # demo truy vết quan hệ
 ```
 
 **Trước khi chạy Tuần 8**, cần lấy API key miễn phí tại https://aistudio.google.com/apikey
