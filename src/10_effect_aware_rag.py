@@ -30,6 +30,9 @@ from pyvi import ViTokenizer
 from sentence_transformers import SentenceTransformer
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
+
+load_dotenv()  # tự động đọc file .env ở thư mục gốc project
 
 # Import Effect Checker từ Tuần 11
 # (dùng importlib vì tên file bắt đầu bằng số)

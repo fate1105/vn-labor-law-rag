@@ -30,6 +30,10 @@ from pyvi import ViTokenizer
 from sentence_transformers import SentenceTransformer
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
+
+load_dotenv()  # tự động đọc file .env ở thư mục gốc project
+
 
 EMBED_MODEL_NAME = "bkai-foundation-models/vietnamese-bi-encoder"
 LLM_MODEL_NAME = "gemini-2.5-flash"  # nằm trong gói miễn phí của Gemini API

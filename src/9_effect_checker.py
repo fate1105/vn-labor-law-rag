@@ -128,7 +128,8 @@ class EffectChecker:
         row = cur.fetchone()
         if row:
             return dict(row)
-        return {"doc_id": doc_id, "title": "", "effect_status": "Chưa xác định"}
+        # Bug fix: doc_id ngoài phạm vi 800 văn bản → không có trong DB → hiển thị placeholder
+        return {"doc_id": doc_id, "title": f"Văn bản ngoài phạm vi (ID: {doc_id})", "effect_status": "Chưa xác định"}
 
     def _get_relations(self, doc_id: str) -> list[dict]:
         """Lấy tất cả quan hệ THAY_THE/BAI_BO/SUA_DOI liên quan đến doc_id."""
@@ -182,12 +183,34 @@ class EffectChecker:
             elif r["other_doc_id"] == doc_id and r["direction"] == "OUTGOING":
                 affecting.append(rel_doc)
 
-        # Nâng cấp mức cảnh báo nếu bị tác động bởi THAY_THE hoặc BAI_BO
+        # Nâng cấp mức cảnh báo nếu bị tác động bởi các quan hệ pháp lý
+        # Logic phân biệt:
+        #   BAI_BO  → DANGER (văn bản bị đình chỉ/bãi bỏ hoàn toàn)
+        #   THAY_THE → DANGER chỉ khi source đã là DANGER (hết hiệu lực toàn bộ)
+        #              Nếu source là OK/WARNING (hết hiệu lực một phần) → WARNING
+        #   SUA_DOI → nâng từ OK → WARNING (bị sửa đổi, vẫn dùng được)
+        #
+        # ⚠️  Lọc data noise: bỏ qua quan hệ từ văn bản "affecting" đã hết hiệu lực
+        #     toàn bộ (DANGER). Ví dụ: BLLĐ 2012 (đã hết HLực) không thể "bãi bỏ"
+        #     BLLĐ 2019 (đang hiệu lực) — đây là data lỗi chiều từ vbpl.vn.
         final_level = EffectLevel(base_level_str)
         for a in affecting:
-            if a.rel_type in {"THAY_THE", "BAI_BO"}:
+            # Bỏ qua nếu văn bản tác động chính nó đã hết hiệu lực toàn bộ
+            affecting_base = STATUS_SOURCE_MAP.get(a.effect_status, "UNKNOWN")
+            if affecting_base == "DANGER":
+                continue  # luật đã hết hiệu lực không thể tác động thực tế
+
+            if a.rel_type == "BAI_BO":
+                # Bãi bỏ toàn bộ → DANGER
                 final_level = EffectLevel.DANGER
                 break
+            elif a.rel_type == "THAY_THE":
+                if base_level_str == "DANGER":
+                    # Đã hết hiệu lực toàn bộ + bị thay thế → confirm DANGER
+                    final_level = EffectLevel.DANGER
+                elif final_level != EffectLevel.DANGER:
+                    # Hết hiệu lực một phần / còn hiệu lực → chỉ nâng lên WARNING
+                    final_level = EffectLevel.WARNING
             elif a.rel_type == "SUA_DOI" and final_level == EffectLevel.OK:
                 final_level = EffectLevel.WARNING
 
