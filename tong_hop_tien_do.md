@@ -1,6 +1,6 @@
 # 📊 Tổng hợp tiến độ — VN Labor Law RAG
 **Sinh viên:** Trần Tấn Phúc — D22CNTT03 | **GVHD:** Nguyễn Trung Kiệt  
-**Cập nhật:** 19/09/2026
+**Cập nhật:** 29/10/2026
 
 ---
 
@@ -10,9 +10,10 @@
 |---|---|---|---|
 | Data Pipeline (Bước 1–5) | 5 | 5 | ✅ **100%** |
 | Baseline RAG (Bước 6) | 1 | 1 | ✅ **100%** |
-| Effect-Aware RAG (Bước 7–12) | 6 | 6 | ✅ **100%** |
-| Web / Evaluation / Báo cáo (Bước 13–16) | 4 | 0 | ⏳ **0%** |
-| **Tổng cộng** | **16** | **12** | **75%** |
+| Effect-Aware RAG (Bước 7–10) | 4 | 4 | ✅ **100%** |
+| Web UI / Backend (Bước 11) | 1 | 1 | ✅ **100%** |
+| Evaluation / Báo cáo (Bước 12–14) | 3 | 0 | ⏳ **0%** |
+| **Tổng cộng** | **14** | **11** | **~79%** |
 
 ---
 
@@ -187,14 +188,27 @@
 
 ---
 
+### 📁 Bước 11 — Giao diện Web Chatbot & Backend API (`src/web/`)
+
+| Thành phần | Chi tiết |
+|---|---|
+| Service Layer | `src/web/rag_service.py` (Singleton, lazy-loading, cache FAISS/Embedding/EffectChecker, cơ chế retry LLM) |
+| Web UI Chatbot | `src/web/app.py` (Streamlit hiện đại, chia 3 chế độ: Effect-Aware, Baseline, So sánh song song Side-by-Side) |
+| Backend REST API | `src/web/api.py` (FastAPI với docs Swagger tự động tại `/docs`, CORS ready) |
+| Chức năng nổi bật | Chế độ so sánh Side-by-Side cho thấy rõ rủi ro trích dẫn luật cũ của Baseline vs sự chính xác của Effect-Aware |
+| Tra cứu nhanh | Hỗ trợ tra cứu cây phả hệ pháp lý của văn bản theo ID/Số hiệu ngay trên sidebar |
+| Cách chạy Web UI | `streamlit run src/web/app.py` |
+| Cách chạy API | `uvicorn src.web.api:app --reload --port 8000` |
+
+---
+
 ## ⏳ Còn lại (chưa làm)
 
 | Bước | Nội dung | Ước lượng công |
 |---|---|---|
-| **Bước 11** | Backend FastAPI + giao diện chatbot web (`src/web/`) | Trung bình |
 | **Bước 12** | Xây bộ câu hỏi kiểm thử (`data/eval/`) | Nhỏ–Trung bình |
 | **Bước 13** | Script đánh giá so sánh Baseline vs Effect-Aware (`src/11_evaluate.py`) | Trung bình |
-| **Bước 14** | Hoàn thiện báo cáo + demo | Lớn |
+| **Bước 14** | Hoàn thiện báo cáo + slide demo bảo vệ | Lớn |
 
 ---
 
