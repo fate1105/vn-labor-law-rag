@@ -1,0 +1,26 @@
+﻿id,category,question,baseline_hit@3,baseline_hit@5,baseline_mrr,baseline_outdated_in_top5,baseline_fact_coverage,baseline_has_warning,effect_hit@3,effect_hit@5,effect_mrr,effect_danger_in_top5,effect_warning_in_top5,effect_fact_coverage,effect_has_warning
+Q01,repealed_trap,Điều kiện để người lao động được rút bảo hiểm xã hội một lần sau khi nghỉ việc là gì?,1,1,1.0,5,0.0,False,1,1,1.0,5,0,0.0,False
+Q02,repealed_trap,Độ tuổi nghỉ hưu của người lao động làm việc trong điều kiện bình thường hiện nay là bao nhiêu?,1,1,1.0,3,0.0,False,1,1,1.0,2,3,0.0,False
+Q03,repealed_trap,Hiện nay có bao nhiêu loại hợp đồng lao động theo quy định của pháp luật?,1,1,1.0,3,0.0,False,1,1,1.0,2,3,0.0,False
+Q04,repealed_trap,Người lao động có quyền đơn phương chấm dứt hợp đồng lao động mà không cần lý do hay không?,1,1,1.0,3,0.0,False,1,1,1.0,1,4,0.0,False
+Q05,repealed_trap,Thời gian thử việc tối đa đối với người quản lý doanh nghiệp là bao lâu?,1,1,1.0,2,0.0,False,1,1,1.0,1,4,0.0,False
+Q06,repealed_trap,Ngày nghỉ lễ Quốc khánh 2/9 người lao động được nghỉ bao nhiêu ngày hưởng nguyên lương?,0,1,0.25,4,0.0,False,1,1,1.0,3,2,0.0,False
+Q07,repealed_trap,Số giờ làm thêm tối đa của người lao động trong một năm là bao nhiêu giờ?,1,1,1.0,1,0.0,False,0,1,0.2,0,1,0.0,False
+Q08,repealed_trap,Mức lương tối thiểu vùng năm 2015 theo Nghị định 122/2015/NĐ-CP là bao nhiêu và hiện nay còn áp dụng không?,0,0,0.0,1,0.0,False,0,0,0.0,1,0,0.0,False
+Q09,repealed_trap,Hình thức giao kết hợp đồng lao động thông qua phương tiện điện tử có được pháp luật công nhận không?,1,1,1.0,2,0.0,False,1,1,0.5,2,2,0.0,False
+Q10,repealed_trap,Người sử dụng lao động có phải trả tiền lương ngừng việc khi người lao động phải cách ly y tế vì dịch bệnh không?,1,1,0.3333,3,0.0,False,1,1,1.0,3,2,0.0,False
+Q11,active_current,Thời giờ làm việc bình thường của người lao động được quy định như thế nào?,1,1,1.0,3,0.0,False,1,1,1.0,3,2,0.0,False
+Q12,active_current,Người lao động làm việc trong điều kiện bình thường được nghỉ bao nhiêu ngày phép năm?,1,1,0.3333,4,0.0,False,1,1,1.0,3,2,0.0,False
+Q13,active_current,Cứ làm việc bao nhiêu năm thì người lao động được tăng thêm 01 ngày nghỉ phép năm?,1,1,0.3333,3,0.0,False,1,1,1.0,2,3,0.0,False
+Q14,active_current,"Mức tiền lương làm thêm giờ vào ngày nghỉ lễ, tết được tính ít nhất bằng bao nhiêu % so với lương bình thường?",1,1,1.0,2,0.0,False,1,1,1.0,1,4,0.0,False
+Q15,active_current,Người lao động làm việc vào ban đêm được trả thêm ít nhất bao nhiêu phần trăm tiền lương?,1,1,0.5,3,0.0,False,1,1,1.0,2,3,0.0,False
+Q16,active_current,Lao động nữ sinh con được nghỉ chế độ thai sản trong thời gian bao lâu?,1,1,1.0,4,0.0,False,1,1,1.0,3,2,0.0,False
+Q17,active_current,Lao động nam đang đóng bảo hiểm xã hội có vợ sinh con được nghỉ việc hưởng chế độ thai sản mấy ngày?,1,1,1.0,5,0.0,False,1,1,0.5,4,1,0.0,False
+Q18,active_current,Các hình thức xử lý kỷ luật lao động được áp dụng tại doanh nghiệp bao gồm những hình thức nào?,1,1,0.5,3,0.0,False,1,1,1.0,3,2,0.0,False
+Q19,active_current,Người sử dụng lao động có được giữ bản chính giấy tờ tùy thân hoặc bằng cấp của người lao động khi giao kết hợp đồng không?,1,1,1.0,3,0.0,False,1,1,1.0,2,3,0.0,False
+Q20,active_current,Tiền lương làm căn cứ tính trả trợ cấp thôi việc cho người lao động là tiền lương nào?,1,1,0.5,3,0.0,False,1,1,1.0,2,3,0.0,False
+Q21,guidance_cross_ref,Những khoảng thời gian nào được coi là thời gian làm việc để tính số ngày nghỉ hằng năm của người lao động?,1,1,0.3333,4,0.0,False,1,1,1.0,4,1,0.0,False
+Q22,guidance_cross_ref,Các trường hợp người sử dụng lao động được sử dụng người lao động làm thêm từ trên 200 giờ đến 300 giờ trong một năm là những trường hợp nào?,1,1,1.0,1,0.0,False,0,1,0.2,0,1,0.0,False
+Q23,guidance_cross_ref,"Trình tự, thủ tục xử lý kỷ luật lao động được thực hiện như thế nào để đảm bảo tính hợp pháp?",1,1,0.5,3,0.0,False,1,1,1.0,2,3,0.0,False
+Q24,guidance_cross_ref,Doanh nghiệp sử dụng bao nhiêu người lao động thì bắt buộc phải ban hành Nội quy lao động bằng văn bản và phải đăng ký?,1,1,1.0,3,0.0,False,1,1,1.0,2,3,0.0,False
+Q25,guidance_cross_ref,Hợp đồng thử việc có phải là bắt buộc trước khi giao kết hợp đồng lao động không?,1,1,0.5,2,0.0,False,1,1,1.0,1,4,0.0,False

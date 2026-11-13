@@ -23,6 +23,13 @@ from dotenv import load_dotenv
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
+try:
+    import streamlit as st
+    if hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets and not os.getenv("GEMINI_API_KEY"):
+        os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
+except Exception:
+    pass
+
 # Thêm PROJECT_ROOT vào sys.path nếu chưa có
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -41,7 +48,8 @@ INDEX_PATH = PROJECT_ROOT / "data" / "index" / "faiss.index"
 METADATA_PATH = PROJECT_ROOT / "data" / "processed" / "chunk_metadata.parquet"
 GRAPH_DB_PATH = PROJECT_ROOT / "data" / "graph" / "legal_graph.db"
 DEFAULT_EMBED_MODEL = "bkai-foundation-models/vietnamese-bi-encoder"
-DEFAULT_LLM_MODEL = "gemini-2.5-flash"
+DEFAULT_LLM_MODEL = "gemini-3.5-flash"
+FALLBACK_CANDIDATES = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"]
 
 BASELINE_SYSTEM_PROMPT = """Bạn là trợ lý tra cứu pháp luật lao động Việt Nam.
 Nhiệm vụ của bạn là giải đáp câu hỏi của người dùng dựa trên các đoạn văn bản pháp luật được cung cấp trong ngữ cảnh.
@@ -75,26 +83,33 @@ def _call_gemini_with_retry(
     model: str,
     contents: str,
     config: types.GenerateContentConfig,
-    max_retries: int = 3,
+    max_retries: int = 2,
 ) -> Any:
-    """Gọi Gemini API với cơ chế retry thông minh khi gặp 503 spike hoặc 429 quota."""
+    """Gọi Gemini API với cơ chế retry và tự động chuyển model fallback khi hết hạn mức (429 RESOURCE_EXHAUSTED)."""
+    # Danh sách các mô hình thử nghiệm: ưu tiên model hiện tại, sau đó thử các model fallback
+    models_to_try = [model] + [m for m in FALLBACK_CANDIDATES if m != model]
+
     last_err = None
-    for attempt in range(max_retries):
-        try:
-            return client.models.generate_content(
-                model=model,
-                contents=contents,
-                config=config,
-            )
-        except Exception as e:
-            last_err = e
-            err_str = str(e)
-            # Nếu gặp 503 (quá tải tạm thời) hoặc 429 (vượt quota tạm thời)
-            if any(code in err_str for code in ["503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED"]):
-                wait_time = 2.0 * (attempt + 1)
-                time.sleep(wait_time)
-            else:
-                time.sleep(1.0)
+    for current_model in models_to_try:
+        for attempt in range(max_retries):
+            try:
+                return client.models.generate_content(
+                    model=current_model,
+                    contents=contents,
+                    config=config,
+                )
+            except Exception as e:
+                last_err = e
+                err_str = str(e)
+                # Nếu hết hạn mức ngày (429 RESOURCE_EXHAUSTED) hoặc model không hỗ trợ (404 NOT_FOUND)
+                if "RESOURCE_EXHAUSTED" in err_str or "429" in err_str or "NOT_FOUND" in err_str:
+                    # Chuyển ngay sang thử model tiếp theo trong danh sách fallback
+                    break
+                elif any(code in err_str for code in ["503", "UNAVAILABLE"]):
+                    time.sleep(1.5 * (attempt + 1))
+                else:
+                    time.sleep(1.0)
+
     raise last_err
 
 
@@ -186,7 +201,7 @@ Câu hỏi: {query}"""
                 config=types.GenerateContentConfig(
                     system_instruction=BASELINE_SYSTEM_PROMPT,
                     temperature=temperature,
-                    max_output_tokens=3072,  # Tăng lên 3072 để không bị cắt chữ
+                    max_output_tokens=4096,  # Tăng lên 4096 để không bị cắt chữ
                 ),
             )
             answer = response.text or "(Không có phản hồi từ LLM)"
@@ -242,7 +257,7 @@ Câu hỏi: {query}"""
                 config=types.GenerateContentConfig(
                     system_instruction=EFFECT_AWARE_SYSTEM_PROMPT,
                     temperature=temperature,
-                    max_output_tokens=3072,  # Tăng lên 3072 để không bị cắt chữ
+                    max_output_tokens=4096,  # Tăng lên 4096 để không bị cắt chữ
                 ),
             )
             answer = response.text or "(Không có phản hồi từ LLM)"

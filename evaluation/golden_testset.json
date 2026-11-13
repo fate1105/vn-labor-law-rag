@@ -1,0 +1,288 @@
+{
+  "description": "Golden Testset đánh giá hệ thống hỏi đáp Pháp luật Lao động Việt Nam (Effect-Aware RAG vs Baseline RAG)",
+  "version": "1.0",
+  "total_queries": 30,
+  "categories": {
+    "repealed_trap": "Câu hỏi chứa bẫy văn bản pháp luật đã hết hiệu lực, bị bãi bỏ hoặc sửa đổi thay thế",
+    "active_current": "Câu hỏi về các quy định pháp luật lao động hiện hành",
+    "guidance_cross_ref": "Câu hỏi về văn bản quy định chi tiết, hướng dẫn thi hành và dẫn chiếu"
+  },
+  "test_cases": [
+    {
+      "id": "Q01",
+      "category": "repealed_trap",
+      "question": "Điều kiện để người lao động được rút bảo hiểm xã hội một lần sau khi nghỉ việc là gì?",
+      "target_docs": ["Luật Bảo hiểm xã hội", "Nghị quyết số 93/2015/QH13"],
+      "target_dieus": ["Điều 60"],
+      "outdated_trap_docs": ["Luật Bảo hiểm xã hội số 58/2014/QH13", "Luật Bảo hiểm xã hội số 71/2006/QH11"],
+      "expected_effect_levels": ["WARNING", "DANGER"],
+      "ground_truth_answer": "Theo Nghị quyết 93/2015/QH13 (sửa đổi áp dụng Điều 60 Luật BHXH 2014) và quy định mới, người lao động tham gia BHXH bắt buộc sau 01 năm nghỉ việc mà chưa đủ 20 năm đóng BHXH và không tiếp tục đóng BHXH nếu có yêu cầu thì được nhận BHXH một lần.",
+      "key_facts": ["1 năm", "nghỉ việc", "20 năm", "BHXH một lần"]
+    },
+    {
+      "id": "Q02",
+      "category": "repealed_trap",
+      "question": "Độ tuổi nghỉ hưu của người lao động làm việc trong điều kiện bình thường hiện nay là bao nhiêu?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 169"],
+      "outdated_trap_docs": ["Bộ luật Lao động số 10/2012/QH13"],
+      "expected_effect_levels": ["WARNING", "OK"],
+      "ground_truth_answer": "Theo Điều 169 Bộ luật Lao động 2019, tuổi nghỉ hưu của người lao động trong điều kiện bình thường được điều chỉnh theo lộ trình cho đến khi đủ 62 tuổi đối với lao động nam (vào năm 2028) và đủ 60 tuổi đối với lao động nữ (vào năm 2035). Quy định cũ nam 60 nữ 55 của BLLĐ 2012 đã hết hiệu lực.",
+      "key_facts": ["62 tuổi", "60 tuổi", "lộ trình", "Điều 169"]
+    },
+    {
+      "id": "Q03",
+      "category": "repealed_trap",
+      "question": "Hiện nay có bao nhiêu loại hợp đồng lao động theo quy định của pháp luật?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 20"],
+      "outdated_trap_docs": ["Bộ luật Lao động số 10/2012/QH13"],
+      "expected_effect_levels": ["WARNING", "OK"],
+      "ground_truth_answer": "Theo Điều 20 Bộ luật Lao động 2019, hợp đồng lao động chỉ còn được giao kết theo 02 loại: 1) Hợp đồng lao động không xác định thời hạn; 2) Hợp đồng lao động xác định thời hạn (tối đa 36 tháng). Loại hợp đồng theo mùa vụ hoặc theo một công việc nhất định của BLLĐ 2012 đã bị bãi bỏ hoàn toàn.",
+      "key_facts": ["2 loại", "không xác định thời hạn", "xác định thời hạn"]
+    },
+    {
+      "id": "Q04",
+      "category": "repealed_trap",
+      "question": "Người lao động có quyền đơn phương chấm dứt hợp đồng lao động mà không cần lý do hay không?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 35"],
+      "outdated_trap_docs": ["Bộ luật Lao động số 10/2012/QH13"],
+      "expected_effect_levels": ["WARNING", "OK"],
+      "ground_truth_answer": "Theo Điều 35 Bộ luật Lao động 2019, người lao động có quyền đơn phương chấm dứt hợp đồng lao động không cần lý do, chỉ cần báo trước cho người sử dụng lao động theo thời hạn quy định (ít nhất 45 ngày với HĐ không xác định thời hạn, 30 ngày với HĐ xác định thời hạn từ 12-36 tháng). Quy định cũ của BLLĐ 2012 bắt buộc phải có lý do luật định đã hết hiệu lực.",
+      "key_facts": ["quyền đơn phương", "không cần lý do", "báo trước", "30 ngày", "45 ngày"]
+    },
+    {
+      "id": "Q05",
+      "category": "repealed_trap",
+      "question": "Thời gian thử việc tối đa đối với người quản lý doanh nghiệp là bao lâu?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 25"],
+      "outdated_trap_docs": ["Bộ luật Lao động số 10/2012/QH13"],
+      "expected_effect_levels": ["WARNING", "OK"],
+      "ground_truth_answer": "Theo Điều 25 Bộ luật Lao động 2019, thời gian thử việc không quá 180 ngày đối với công việc của người quản lý doanh nghiệp theo quy định của Luật Doanh nghiệp. Quy định cũ tại BLLĐ 2012 chỉ có mức tối đa 60 ngày đối với công việc có chức danh nghề nghiệp cần trình độ chuyên môn kỹ thuật từ cao đẳng trở lên.",
+      "key_facts": ["180 ngày", "người quản lý", "thử việc"]
+    },
+    {
+      "id": "Q06",
+      "category": "repealed_trap",
+      "question": "Ngày nghỉ lễ Quốc khánh 2/9 người lao động được nghỉ bao nhiêu ngày hưởng nguyên lương?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 112"],
+      "outdated_trap_docs": ["Bộ luật Lao động số 10/2012/QH13"],
+      "expected_effect_levels": ["WARNING", "OK"],
+      "ground_truth_answer": "Theo Điều 112 Bộ luật Lao động 2019, dịp Quốc khánh người lao động được nghỉ 02 ngày (ngày 02 tháng 9 dương lịch và 01 ngày liền kề trước hoặc sau) hưởng nguyên lương. Quy định cũ tại BLLĐ 2012 chỉ cho nghỉ 01 ngày 2/9.",
+      "key_facts": ["02 ngày", "Quốc khánh", "liền kề", "nguyên lương"]
+    },
+    {
+      "id": "Q07",
+      "category": "repealed_trap",
+      "question": "Số giờ làm thêm tối đa của người lao động trong một năm là bao nhiêu giờ?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 107"],
+      "outdated_trap_docs": ["Bộ luật Lao động số 10/2012/QH13"],
+      "expected_effect_levels": ["WARNING", "OK"],
+      "ground_truth_answer": "Theo Điều 107 Bộ luật Lao động 2019, tổng số giờ làm thêm thông thường không quá 200 giờ trong 01 năm; trong một số ngành nghề hoặc trường hợp đặc biệt được làm thêm tối đa không quá 300 giờ trong 01 năm.",
+      "key_facts": ["200 giờ", "300 giờ", "trong một năm", "làm thêm"]
+    },
+    {
+      "id": "Q08",
+      "category": "repealed_trap",
+      "question": "Mức lương tối thiểu vùng năm 2015 theo Nghị định 122/2015/NĐ-CP là bao nhiêu và hiện nay còn áp dụng không?",
+      "target_docs": ["Nghị định số 122/2015/NĐ-CP"],
+      "target_dieus": ["Điều 3"],
+      "outdated_trap_docs": ["Nghị định số 122/2015/NĐ-CP"],
+      "expected_effect_levels": ["DANGER"],
+      "ground_truth_answer": "Nghị định 122/2015/NĐ-CP quy định mức lương tối thiểu vùng từ 2.400.000 đến 3.500.000 đồng/tháng. Tuy nhiên văn bản này ĐÃ HẾT HIỆU LỰC TOÀN BỘ và đã bị thay thế bởi các Nghị định về mức lương tối thiểu sau đó.",
+      "key_facts": ["hết hiệu lực", "thay thế", "không còn áp dụng", "tham khảo"]
+    },
+    {
+      "id": "Q09",
+      "category": "repealed_trap",
+      "question": "Hình thức giao kết hợp đồng lao động thông qua phương tiện điện tử có được pháp luật công nhận không?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 14"],
+      "outdated_trap_docs": ["Bộ luật Lao động số 10/2012/QH13"],
+      "expected_effect_levels": ["WARNING", "OK"],
+      "ground_truth_answer": "Theo Điều 14 Bộ luật Lao động 2019, hợp đồng lao động được giao kết thông qua phương tiện điện tử dưới hình thức thông điệp dữ liệu theo quy định của pháp luật về giao dịch điện tử có giá trị như hợp đồng lao động bằng văn bản. Quy định cũ BLLĐ 2012 chưa thừa nhận hình thức này.",
+      "key_facts": ["phương tiện điện tử", "thông điệp dữ liệu", "như văn bản", "Điều 14"]
+    },
+    {
+      "id": "Q10",
+      "category": "repealed_trap",
+      "question": "Người sử dụng lao động có phải trả tiền lương ngừng việc khi người lao động phải cách ly y tế vì dịch bệnh không?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 99"],
+      "outdated_trap_docs": ["Bộ luật Lao động số 10/2012/QH13"],
+      "expected_effect_levels": ["WARNING", "OK"],
+      "ground_truth_answer": "Theo khoản 3 Điều 99 Bộ luật Lao động 2019, nếu vì sự cố điện, nước hoặc vì lý do thiên tai, hỏa hoạn, dịch bệnh nguy hiểm... thì hai bên thỏa thuận về tiền lương ngừng việc, trong đó 14 ngày đầu tiên không được thấp hơn mức lương tối thiểu.",
+      "key_facts": ["ngừng việc", "dịch bệnh", "thỏa thuận", "lương tối thiểu"]
+    },
+    {
+      "id": "Q11",
+      "category": "active_current",
+      "question": "Thời giờ làm việc bình thường của người lao động được quy định như thế nào?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 105"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo Điều 105 Bộ luật Lao động 2019, thời giờ làm việc bình thường không quá 08 giờ trong 01 ngày và không quá 48 giờ trong 01 tuần. Nhà nước khuyến khích người sử dụng lao động thực hiện tuần làm việc 40 giờ.",
+      "key_facts": ["08 giờ", "48 giờ", "một ngày", "một tuần"]
+    },
+    {
+      "id": "Q12",
+      "category": "active_current",
+      "question": "Người lao động làm việc trong điều kiện bình thường được nghỉ bao nhiêu ngày phép năm?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 113"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo Điều 113 Bộ luật Lao động 2019, người lao động làm việc đủ 12 tháng cho một người sử dụng lao động thì được nghỉ hằng năm hưởng nguyên lương là 12 ngày làm việc đối với người làm công việc trong điều kiện bình thường.",
+      "key_facts": ["12 ngày", "đủ 12 tháng", "hưởng nguyên lương"]
+    },
+    {
+      "id": "Q13",
+      "category": "active_current",
+      "question": "Cứ làm việc bao nhiêu năm thì người lao động được tăng thêm 01 ngày nghỉ phép năm?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 114"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo Điều 114 Bộ luật Lao động 2019, cứ đủ 05 năm làm việc cho một người sử dụng lao động thì số ngày nghỉ hằng năm của người lao động được tăng thêm tương ứng 01 ngày.",
+      "key_facts": ["đủ 05 năm", "tăng thêm 01 ngày"]
+    },
+    {
+      "id": "Q14",
+      "category": "active_current",
+      "question": "Mức tiền lương làm thêm giờ vào ngày nghỉ lễ, tết được tính ít nhất bằng bao nhiêu % so với lương bình thường?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 98"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo Điều 98 Bộ luật Lao động 2019, người lao động làm thêm giờ vào ngày nghỉ lễ, tết, ngày nghỉ có hưởng lương được trả lương tính theo đơn giá tiền lương hoặc tiền lương thực trả ít nhất bằng 300% chưa kể tiền lương ngày lễ, tết đối với người lao động hưởng lương ngày.",
+      "key_facts": ["ít nhất 300%", "ngày nghỉ lễ", "làm thêm giờ"]
+    },
+    {
+      "id": "Q15",
+      "category": "active_current",
+      "question": "Người lao động làm việc vào ban đêm được trả thêm ít nhất bao nhiêu phần trăm tiền lương?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 98"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo khoản 2 Điều 98 Bộ luật Lao động 2019, người lao động làm việc vào ban đêm thì được trả thêm ít nhất bằng 30% tiền lương tính theo đơn giá tiền lương hoặc tiền lương thực trả theo công việc của ngày làm việc bình thường.",
+      "key_facts": ["ít nhất 30%", "ban đêm", "tiền lương"]
+    },
+    {
+      "id": "Q16",
+      "category": "active_current",
+      "question": "Lao động nữ sinh con được nghỉ chế độ thai sản trong thời gian bao lâu?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14", "Luật Bảo hiểm xã hội số 58/2014/QH13"],
+      "target_dieus": ["Điều 139", "Điều 34"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo Điều 139 Bộ luật Lao động 2019 và Luật BHXH, lao động nữ được nghỉ thai sản trước và sau khi sinh con là 06 tháng; thời gian nghỉ trước khi sinh không quá 02 tháng. Trường hợp sinh đôi trở lên thì từ con thứ 2 trở đi, cứ mỗi con người mẹ được nghỉ thêm 01 tháng.",
+      "key_facts": ["06 tháng", "thai sản", "trước và sau khi sinh"]
+    },
+    {
+      "id": "Q17",
+      "category": "active_current",
+      "question": "Lao động nam đang đóng bảo hiểm xã hội có vợ sinh con được nghỉ việc hưởng chế độ thai sản mấy ngày?",
+      "target_docs": ["Luật Bảo hiểm xã hội số 58/2014/QH13"],
+      "target_dieus": ["Điều 34"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["WARNING", "OK"],
+      "ground_truth_answer": "Theo khoản 2 Điều 34 Luật Bảo hiểm xã hội 2014, lao động nam đang đóng BHXH khi vợ sinh con được nghỉ: 05 ngày làm việc (sinh thường); 07 ngày làm việc (sinh con phải phẫu thuật, sinh con dưới 32 tuần tuổi); 10 ngày làm việc (sinh đôi); trường hợp sinh ba trở lên thì cứ thêm mỗi con được nghỉ thêm 03 ngày làm việc.",
+      "key_facts": ["05 ngày", "07 ngày", "lao động nam", "vợ sinh con"]
+    },
+    {
+      "id": "Q18",
+      "category": "active_current",
+      "question": "Các hình thức xử lý kỷ luật lao động được áp dụng tại doanh nghiệp bao gồm những hình thức nào?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 124"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo Điều 124 Bộ luật Lao động 2019, các hình thức xử lý kỷ luật lao động gồm: 1) Khiển trách; 2) Kéo dài thời hạn nâng lương không quá 06 tháng; 3) Cách chức; 4) Sa thải.",
+      "key_facts": ["Khiển trách", "Kéo dài thời hạn nâng lương", "Cách chức", "Sa thải"]
+    },
+    {
+      "id": "Q19",
+      "category": "active_current",
+      "question": "Người sử dụng lao động có được giữ bản chính giấy tờ tùy thân hoặc bằng cấp của người lao động khi giao kết hợp đồng không?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 17"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo Điều 17 Bộ luật Lao động 2019, người sử dụng lao động bị nghiêm cấm giữ bản chính giấy tờ tùy thân, văn bằng, chứng chỉ của người lao động khi giao kết, thực hiện hợp đồng lao động.",
+      "key_facts": ["nghiêm cấm", "giữ bản chính", "giấy tờ tùy thân", "văn bằng chứng chỉ"]
+    },
+    {
+      "id": "Q20",
+      "category": "active_current",
+      "question": "Tiền lương làm căn cứ tính trả trợ cấp thôi việc cho người lao động là tiền lương nào?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 46"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo khoản 3 Điều 46 Bộ luật Lao động 2019, tiền lương để tính trợ cấp thôi việc là tiền lương bình quân của 06 tháng liền kề theo hợp đồng lao động trước khi người lao động thôi việc.",
+      "key_facts": ["tiền lương bình quân", "06 tháng liền kề", "trợ cấp thôi việc"]
+    },
+    {
+      "id": "Q21",
+      "category": "guidance_cross_ref",
+      "question": "Những khoảng thời gian nào được coi là thời gian làm việc để tính số ngày nghỉ hằng năm của người lao động?",
+      "target_docs": ["Nghị định số 145/2020/NĐ-CP", "Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 65"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK"],
+      "ground_truth_answer": "Theo Điều 65 Nghị định 145/2020/NĐ-CP, thời gian được coi là thời gian làm việc để tính ngày nghỉ phép năm gồm: thời gian học nghề, tập nghề; thời gian thử việc nếu tiếp tục làm việc; thời gian nghỉ việc riêng có hưởng lương; thời gian nghỉ điều trị tai nạn lao động, bệnh nghề nghiệp (không quá 6 tháng cộng dồn); thời gian nghỉ thai sản theo quy định BHXH...",
+      "key_facts": ["thời gian thử việc", "thời gian nghỉ thai sản", "học nghề", "tai nạn lao động"]
+    },
+    {
+      "id": "Q22",
+      "category": "guidance_cross_ref",
+      "question": "Các trường hợp người sử dụng lao động được sử dụng người lao động làm thêm từ trên 200 giờ đến 300 giờ trong một năm là những trường hợp nào?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14", "Nghị định số 145/2020/NĐ-CP"],
+      "target_dieus": ["Điều 107", "Điều 61"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo khoản 3 Điều 107 BLLĐ 2019 và Điều 61 Nghị định 145/2020/NĐ-CP, người sử dụng lao động được tổ chức làm thêm từ trên 200 giờ đến 300 giờ/năm trong các trường hợp: sản xuất dệt, may, da giày, chế biến nông lâm thủy sản; sản xuất cung ứng điện, viễn thông, lọc dầu; công việc đòi hỏi lao động có trình độ chuyên môn kỹ thuật cao mà thị trường không cung ứng đủ kịp thời; trường hợp khẩn cấp...",
+      "key_facts": ["dệt may", "chế biến nông lâm thủy sản", "viễn thông", "trên 200 giờ đến 300 giờ"]
+    },
+    {
+      "id": "Q23",
+      "category": "guidance_cross_ref",
+      "question": "Trình tự, thủ tục xử lý kỷ luật lao động được thực hiện như thế nào để đảm bảo tính hợp pháp?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14", "Nghị định số 145/2020/NĐ-CP"],
+      "target_dieus": ["Điều 122", "Điều 70"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo Điều 122 BLLĐ 2019 và Điều 70 Nghị định 145/2020/NĐ-CP, người sử dụng lao động phải: 1) Chứng minh được lỗi của người lao động; 2) Phải có sự tham gia của tổ chức đại diện người lao động tại cơ sở; 3) Người lao động phải có mặt và có quyền tự bào chữa hoặc nhờ luật sư; 4) Cuộc họp xử lý kỷ luật phải được lập biên bản.",
+      "key_facts": ["chứng minh lỗi", "tổ chức đại diện", "tự bào chữa", "lập biên bản"]
+    },
+    {
+      "id": "Q24",
+      "category": "guidance_cross_ref",
+      "question": "Doanh nghiệp sử dụng bao nhiêu người lao động thì bắt buộc phải ban hành Nội quy lao động bằng văn bản và phải đăng ký?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 118", "Điều 119"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo Điều 118 và Điều 119 Bộ luật Lao động 2019, người sử dụng lao động sử dụng từ 10 người lao động trở lên phải có nội quy lao động bằng văn bản và trong thời hạn 10 ngày kể từ ngày ban hành phải nộp hồ sơ đăng ký nội quy lao động tại cơ quan chuyên môn về lao động thuộc UBND cấp tỉnh.",
+      "key_facts": ["từ 10 người lao động trở lên", "bằng văn bản", "đăng ký nội quy lao động"]
+    },
+    {
+      "id": "Q25",
+      "category": "guidance_cross_ref",
+      "question": "Hợp đồng thử việc có phải là bắt buộc trước khi giao kết hợp đồng lao động không?",
+      "target_docs": ["Bộ Luật lao động số 45/2019/QH14"],
+      "target_dieus": ["Điều 24"],
+      "outdated_trap_docs": [],
+      "expected_effect_levels": ["OK", "WARNING"],
+      "ground_truth_answer": "Theo Điều 24 Bộ luật Lao động 2019, người sử dụng lao động và người lao động có thể thỏa thuận nội dung thử việc ghi trong hợp đồng lao động hoặc thỏa thuận giao kết hợp đồng thử việc riêng. Thử việc là quyền thỏa thuận giữa các bên chứ không bắt buộc; không áp dụng thử việc đối với người lao động giao kết hợp đồng lao động có thời hạn dưới 01 tháng.",
+      "key_facts": ["thỏa thuận", "không bắt buộc", "dưới 01 tháng không thử việc"]
+    }
+  ]
+}
+

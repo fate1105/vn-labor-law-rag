@@ -4,7 +4,9 @@ data/raw/*.csv
 data/processed/*.csv
 data/processed/*.npy
 data/processed/*.parquet
-data/index/
+!data/processed/chunk_metadata.parquet
+data/index/*
+!data/index/faiss.index
 
 # Môi trường Python
 __pycache__/
