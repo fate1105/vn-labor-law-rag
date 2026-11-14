@@ -8,8 +8,22 @@ import sys
 import time
 import sqlite3
 import pathlib
+import warnings
+import logging
 import importlib.util
 from typing import Optional, Dict, Any, List
+
+os.environ["TRANSFORMERS_VERBOSITY"] = "critical"
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", message=".*unauthenticated requests.*")
+warnings.filterwarnings("ignore", message=".*HF_TOKEN.*")
+logging.getLogger("transformers").setLevel(logging.CRITICAL)
+logging.getLogger("sentence_transformers").setLevel(logging.CRITICAL)
+logging.getLogger("huggingface_hub").setLevel(logging.CRITICAL)
 
 import faiss
 import pandas as pd
