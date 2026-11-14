@@ -1,5 +1,5 @@
 # 📊 Tổng hợp tiến độ — VN Labor Law RAG
-**Sinh viên:** Trần Tấn Phúc — D22CNTT03 | **GVHD:** Nguyễn Trung Kiệt  
+**Tác giả:** Trần Tấn Phúc | **GVHD:** Nguyễn Trung Kiệt  
 **Cập nhật:** 29/10/2026
 
 ---

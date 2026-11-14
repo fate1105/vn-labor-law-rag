@@ -1,6 +1,6 @@
 """
 GIAO DIỆN WEB CHATBOT HỎI ĐÁP PHÁP LUẬT LAO ĐỘNG VIỆT NAM (EFFECT-AWARE RAG)
-Đồ án tốt nghiệp: Sinh viên Trần Tấn Phúc — D22CNTT03 | GVHD: TS. Nguyễn Trung Kiệt
+Tác giả: Trần Tấn Phúc | GVHD: TS. Nguyễn Trung Kiệt
 Chạy: python -m streamlit run src/web/app.py
 """
 

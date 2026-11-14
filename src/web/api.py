@@ -1,6 +1,6 @@
 """
 FASTAPI BACKEND — HỆ THỐNG HỎI ĐÁP PHÁP LUẬT LAO ĐỘNG VIỆT NAM (EFFECT-AWARE RAG)
-Đồ án tốt nghiệp: Trần Tấn Phúc — D22CNTT03 | GVHD: TS. Nguyễn Trung Kiệt
+Tác giả: Trần Tấn Phúc | GVHD: TS. Nguyễn Trung Kiệt
 Chạy: uvicorn src.web.api:app --reload --port 8000
 """
 
@@ -64,7 +64,7 @@ def get_service() -> RAGService:
 def root():
     return {
         "project": "VN Labor Law RAG — Effect-Aware System",
-        "student": "Trần Tấn Phúc — D22CNTT03",
+        "author": "Trần Tấn Phúc",
         "supervisor": "TS. Nguyễn Trung Kiệt",
         "docs_url": "/docs",
     }
