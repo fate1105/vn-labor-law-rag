@@ -95,6 +95,8 @@ class EffectChecker:
         self._graph: Optional[nx.DiGraph] = None
         self._db_conn: Optional[sqlite3.Connection] = None
         self._meta: Optional[pd.DataFrame] = None
+        self._status_cache: dict[str, EffectStatus] = {}
+        self._doc_info_cache: dict[str, dict] = {}
 
     # ── Lazy loading ─────────────────────────────────────────────────────────
 
@@ -121,15 +123,21 @@ class EffectChecker:
     # ── Core methods ──────────────────────────────────────────────────────────
 
     def _get_doc_info(self, doc_id: str) -> dict:
-        """Lấy thông tin văn bản từ SQLite (nhanh hơn đọc parquet)."""
+        """Lấy thông tin văn bản từ SQLite (nhanh hơn đọc parquet), có in-memory cache O(1)."""
+        doc_id = str(doc_id)
+        if doc_id in self._doc_info_cache:
+            return self._doc_info_cache[doc_id]
         cur = self.db.execute(
-            "SELECT * FROM documents WHERE doc_id = ?", (str(doc_id),)
+            "SELECT * FROM documents WHERE doc_id = ?", (doc_id,)
         )
         row = cur.fetchone()
         if row:
-            return dict(row)
-        # Bug fix: doc_id ngoài phạm vi 800 văn bản → không có trong DB → hiển thị placeholder
-        return {"doc_id": doc_id, "title": f"Văn bản ngoài phạm vi (ID: {doc_id})", "effect_status": "Chưa xác định"}
+            res = dict(row)
+        else:
+            # Bug fix: doc_id ngoài phạm vi 800 văn bản → không có trong DB → hiển thị placeholder
+            res = {"doc_id": doc_id, "title": f"Văn bản ngoài phạm vi (ID: {doc_id})", "effect_status": "Chưa xác định"}
+        self._doc_info_cache[doc_id] = res
+        return res
 
     def _get_relations(self, doc_id: str) -> list[dict]:
         """Lấy tất cả quan hệ THAY_THE/BAI_BO/SUA_DOI liên quan đến doc_id."""
@@ -146,7 +154,7 @@ class EffectChecker:
 
     def check_effect_status(self, doc_id: str) -> EffectStatus:
         """
-        Kiểm tra trạng thái hiệu lực tổng hợp của một văn bản.
+        Kiểm tra trạng thái hiệu lực tổng hợp của một văn bản (có in-memory cache).
 
         Logic:
           1. Đọc effect_status_source từ DB (giá trị gốc vbpl.vn)
@@ -154,6 +162,9 @@ class EffectChecker:
           3. Tổng hợp → EffectLevel và message cảnh báo
         """
         doc_id = str(doc_id)
+        if doc_id in self._status_cache:
+            return self._status_cache[doc_id]
+
         info = self._get_doc_info(doc_id)
         title = info.get("title", "")
         source_status = info.get("effect_status", "Chưa xác định")
@@ -219,7 +230,7 @@ class EffectChecker:
             source_status, final_level, affecting, doc_id, title
         )
 
-        return EffectStatus(
+        status = EffectStatus(
             doc_id=doc_id,
             title=title,
             source_status=source_status,
@@ -228,6 +239,8 @@ class EffectChecker:
             affecting_docs=affecting,
             affected_docs=affected,
         )
+        self._status_cache[doc_id] = status
+        return status
 
     def _build_status_message(
         self,

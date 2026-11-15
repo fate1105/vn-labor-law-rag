@@ -136,8 +136,8 @@ class WarRoomOrchestrator:
             model_name=self.model_name,
         )
         agent1_content = retrieval_res.get("answer", "")
-        agent1_chunks = retrieval_res.get("chunks", [])
-        agent1_stats = retrieval_res.get("effect_stats", {})
+        agent1_chunks = retrieval_res.get("llm_chunks", retrieval_res.get("chunks", []))
+        agent1_stats = retrieval_res.get("stats_llm", retrieval_res.get("effect_stats", {}))
         agent1_latency = time.time() - t0
 
         agent1_out = AgentOutput(

@@ -54,92 +54,6 @@ AGENTS_META = [
 ]
 
 
-def generate_war_room_office_html(agent_states: dict, action_msg: str) -> str:
-    """Tạo giao diện HTML tĩnh mô phỏng phòng họp (nếu cần dùng độc lập)."""
-    cards_html = []
-    is_debate_active = (agent_states.get(3, {}).get("status") == "active") or (agent_states.get(2, {}).get("status") == "active")
-
-    for a in AGENTS_META:
-        aid = a["id"]
-        state = agent_states.get(aid, {})
-        stt = state.get("status", "waiting")
-        speech = state.get("speech", "Đang chờ đến lượt...")
-        tag_text = {
-            "waiting": "⏳ Chờ lượt",
-            "active": "🎙️ Đang phát biểu",
-            "done": "✅ Đã tham mưu",
-        }.get(stt, "⏳ Chờ")
-        tag_class = f"tag-{stt}"
-        bubble_class = "speech-bubble done" if stt == "done" else "speech-bubble"
-
-        if stt == "active":
-            soundwave_html = '<div class="sound-wave-bars"><span></span><span></span><span></span><span></span></div>'
-        else:
-            soundwave_html = '<div style="height:16px; margin-bottom:4px;"></div>'
-
-        card = (
-            f'<div class="agent-desk-card {stt}">'
-            f'<div>'
-            f'{soundwave_html}'
-            f'<div class="agent-chair">'
-            f'<div class="agent-avatar-wrap">{a["icon"]}</div>'
-            f'<span class="agent-desk-mat">{a["desk_item"]}</span>'
-            f'</div>'
-            f'<div class="agent-desk-name">{a["name"]} • {a["title"]}</div>'
-            f'<div class="agent-desk-role">{a["role"]}</div>'
-            f'<span class="agent-status-tag {tag_class}">{tag_text}</span>'
-            f'</div>'
-            f'<div class="{bubble_class}">'
-            f'<div class="speech-bubble-tail"></div>'
-            f'{speech}'
-            f'</div>'
-            f'</div>'
-        )
-        cards_html.append(card)
-
-    all_cards = "".join(cards_html)
-
-    if is_debate_active:
-        debate_badge_html = (
-            '<div class="live-debate-indicator">'
-            '<span class="swords-clash">⚔️</span> '
-            '<b>TRỤC TRANH LUẬN ĐỐI KHÁNG: AGENT 2 (GIẢI PHÁP) ⚡ AGENT 3 (BẮT BẺ RỦI RO)</b>'
-            '</div>'
-        )
-    else:
-        debate_badge_html = (
-            '<div style="font-size:0.75rem; color:#64748b; font-weight:600; display:flex; align-items:center; gap:6px;">'
-            '<span>🔄 QUY TRÌNH THAM MƯU: 5 BƯỚC KHÉP KÍN</span>'
-            '</div>'
-        )
-
-    return (
-        f'<div class="war-room-office-container">'
-        f'<div class="war-room-office-header">'
-        f'<div class="office-title"><span>PHÒNG TÁC CHIẾN ĐA TÁC NHÂN (VIRTUAL WAR ROOM)</span></div>'
-        f'<div class="office-status-pill"><span class="table-pulse-dot"></span> HỘI ĐỒNG THAM MƯU TRỰC TUYẾN</div>'
-        f'</div>'
-        f'<div class="war-room-desks-grid">{all_cards}</div>'
-        f'<div class="boardroom-conference-table">'
-        f'<div class="table-surface">'
-        f'<div class="table-agenda-dossier">'
-        f'<span class="dossier-icon">📁</span>'
-        f'<div>'
-        f'<div class="dossier-title">BÀN HỘI NGHỊ TRUNG TÂM • HỒ SƠ THAM MƯU XỬ LÝ VỤ VIỆC</div>'
-        f'<div class="dossier-sub">1. Căn cứ luật ➔ 2. Phân tích ⚔️ 3. Phản biện rủi ro ➔ 4. Soạn thảo NĐ 30 ➔ 5. Trưởng ban duyệt</div>'
-        f'</div>'
-        f'</div>'
-        f'{debate_badge_html}'
-        f'</div>'
-        f'</div>'
-        f'<div class="war-room-table-center">'
-        f'<div class="table-center-text"><span class="table-pulse-dot"></span><b>Tiến trình phối hợp:</b> {action_msg}</div>'
-        f'<span style="font-size:0.75rem; color:#64748b; font-family:\'JetBrains Mono\',monospace; font-weight:600;">GOVTECH MULTI-AGENT PIPELINE</span>'
-        f'</div>'
-        f'</div>'
-    )
-
-
 # ── VIRTUAL 2D SVG+JS INTERACTIVE OFFICE SCENE (COMPONENTS.HTML) ──────────────
 OFFICE_SCENE_TEMPLATE = r"""
 <!DOCTYPE html>
@@ -941,5 +855,82 @@ def format_a4_html(text: str) -> str:
         else:
             out.append(f"<div style='margin-bottom:6px; line-height:1.65;'>{l}</div>")
     return "\n".join(out)
+
+
+def render_war_room_dossier(final_res):
+    """Hiển thị toàn bộ kết quả hội chẩn 5 Agent trong War Room kèm 5 Tabs và nút tải file Markdown."""
+    st.markdown(
+        f"""
+        <div style="background:#f0fdf4; border:1px solid #86efac; border-left:4px solid #16a34a; padding:12px 18px; border-radius:8px; margin-bottom:18px;">
+            <b>🏛️ KẾT QUẢ HỘI CHẨN ĐA TÁC NHÂN (WAR ROOM):</b> Tiến trình xử lý khép kín hoàn tất trong <b>{final_res.total_latency:.2f} giây</b> qua 5 chuyên gia AI.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "Agent 1: Căn cứ Pháp lý",
+        "Agent 2: Đề xuất Phương án",
+        "Agent 3: Phản biện Rủi ro",
+        "Agent 4: Dự thảo NĐ 30",
+        "Agent 5: Ma trận Quyết định",
+    ])
+
+    with tab1:
+        st.markdown(f"#### {final_res.agent1_retrieval.title}")
+        st.caption(f"Thời gian: `{final_res.agent1_retrieval.latency:.2f}s` | Lọc bỏ căn cứ [DANGER]")
+        st.markdown(final_res.agent1_retrieval.content)
+
+    with tab2:
+        st.markdown(f"#### {final_res.agent2_solutions.title}")
+        st.caption(f"Thời gian: `{final_res.agent2_solutions.latency:.2f}s` | Đề xuất Phương án Hòa giải & Chế tài")
+        st.markdown(final_res.agent2_solutions.content)
+
+    with tab3:
+        st.markdown(f"#### {final_res.agent3_critique.title}")
+        st.caption(f"Thời gian: `{final_res.agent3_critique.latency:.2f}s` | Đánh giá rủi ro tố tụng & thời hiệu")
+        st.markdown(final_res.agent3_critique.content)
+
+    with tab4:
+        st.markdown(f"#### {final_res.agent4_draft.title}")
+        st.caption(f"Thời gian: `{final_res.agent4_draft.latency:.2f}s` | Soạn thảo theo chuẩn Nghị định 30/2020/NĐ-CP")
+        st.markdown(
+            f"""
+            <div class="a4-document-container">
+                <div style="text-align:center; margin-bottom:14px;">
+                    <span class="a4-doc-badge">📜 DỰ THẢO VĂN BẢN CÔNG VỤ • CHUẨN THỂ THỨC NGHỊ ĐỊNH 30/2020/NĐ-CP</span>
+                </div>
+                <div class="a4-paper-sheet">
+                    {format_a4_html(final_res.agent4_draft.content)}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with tab5:
+        st.markdown(f"#### {final_res.agent5_evaluation.title}")
+        st.caption(f"Thời gian: `{final_res.agent5_evaluation.latency:.2f}s` | Khuyến nghị tối ưu cho Cán bộ")
+        st.markdown(final_res.agent5_evaluation.content)
+
+    st.markdown("---")
+    # Nút tải toàn bộ hồ sơ
+    full_doc = f"# HỒ SƠ TƯ VẤN & THAM MƯU XỬ LÝ VỤ VIỆC PHÁP LÝ\n" \
+               f"**Hệ thống AI Đa tác nhân (War Room Multi-Agent System)**\n\n" \
+               f"## I. TÌNH HUỐNG / VỤ VIỆC ĐẦU VÀO\n{final_res.case_description}\n\n" \
+               f"## II. CĂN CỨ PHÁP LÝ HIỆN HÀNH (AGENT 1)\n{final_res.agent1_retrieval.content}\n\n" \
+               f"## III. PHÂN TÍCH & CÁC PHƯƠNG ÁN XỬ LÝ (AGENT 2)\n{final_res.agent2_solutions.content}\n\n" \
+               f"## IV. BÁO CÁO PHẢN BIỆN RỦI RO & KHẮC PHỤC (AGENT 3)\n{final_res.agent3_critique.content}\n\n" \
+               f"## V. DỰ THẢO VĂN BẢN CÔNG VỤ (AGENT 4)\n{final_res.agent4_draft.content}\n\n" \
+               f"## VI. MA TRẬN ĐÁNH GIÁ & KHUYẾN NGHỊ RA QUYẾT ĐỊNH (AGENT 5)\n{final_res.agent5_evaluation.content}\n"
+
+    st.download_button(
+        label="📥 Tải toàn bộ Hồ sơ Tham mưu Tư vấn (.md)",
+        data=full_doc,
+        file_name="ho_so_tham_muu_war_room.md",
+        mime="text/markdown",
+        use_container_width=True,
+    )
+
 
 

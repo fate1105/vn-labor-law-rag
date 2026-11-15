@@ -10,7 +10,6 @@ Hệ thống tra cứu, tham mưu và hỗ trợ giải quyết tranh chấp ph�
 
 - **Tác giả:** Trần Tấn Phúc
 - **Giảng viên hướng dẫn:** TS. Nguyễn Trung Kiệt
-- **Đơn vị tiếp nhận thực tập:** CÔNG TY TNHH EDUZ
 - **Ứng dụng trực tuyến:** [https://vn-labor-law-rag.streamlit.app](https://vn-labor-law-rag.streamlit.app)
 
 ---

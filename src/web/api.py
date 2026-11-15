@@ -52,6 +52,7 @@ class CompareRequest(BaseModel):
     top_k_retrieve: int = Field(7, ge=1, le=20)
     top_k_llm: int = Field(5, ge=1, le=10)
     model_name: str = Field("gemini-2.5-flash")
+    temperature: float = Field(0.2, ge=0.0, le=1.0, description="Độ sáng tạo của LLM")
 
 
 # ── Dependency / Service Loader ──────────────────────────────────────────────
@@ -119,6 +120,7 @@ def compare_models(req: CompareRequest):
         top_k_retrieve=req.top_k_retrieve,
         top_k_llm=req.top_k_llm,
         model_name=req.model_name,
+        temperature=req.temperature,
     )
 
 

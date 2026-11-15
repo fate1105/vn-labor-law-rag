@@ -11,6 +11,7 @@ import pathlib
 import warnings
 import logging
 import importlib.util
+import functools
 from typing import Optional, Dict, Any, List
 
 os.environ["TRANSFORMERS_VERBOSITY"] = "critical"
@@ -62,8 +63,8 @@ INDEX_PATH = PROJECT_ROOT / "data" / "index" / "faiss.index"
 METADATA_PATH = PROJECT_ROOT / "data" / "processed" / "chunk_metadata.parquet"
 GRAPH_DB_PATH = PROJECT_ROOT / "data" / "graph" / "legal_graph.db"
 DEFAULT_EMBED_MODEL = "bkai-foundation-models/vietnamese-bi-encoder"
-DEFAULT_LLM_MODEL = "gemini-3.5-flash"
-FALLBACK_CANDIDATES = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"]
+DEFAULT_LLM_MODEL = "gemini-2.5-flash"
+FALLBACK_CANDIDATES = ["gemini-2.5-flash", "gemini-3.5-flash-lite"]
 
 BASELINE_SYSTEM_PROMPT = """Bạn là trợ lý tra cứu pháp luật lao động Việt Nam.
 Nhiệm vụ của bạn là giải đáp câu hỏi của người dùng dựa trên các đoạn văn bản pháp luật được cung cấp trong ngữ cảnh.
@@ -117,7 +118,7 @@ def _call_gemini_with_retry(
                 err_str = str(e)
                 # Nếu hết hạn mức ngày (429 RESOURCE_EXHAUSTED) hoặc model không hỗ trợ (404 NOT_FOUND)
                 if "RESOURCE_EXHAUSTED" in err_str or "429" in err_str or "NOT_FOUND" in err_str:
-                    # Chuyển ngay sang thử model tiếp theo trong danh sách fallback
+                    print(f"⚠️ [Quota 429] Model {current_model} đạt giới hạn. Tự động chuyển model fallback tiếp theo...")
                     break
                 elif any(code in err_str for code in ["503", "UNAVAILABLE"]):
                     time.sleep(1.5 * (attempt + 1))
@@ -136,6 +137,8 @@ class RAGService:
         
         self.index = faiss.read_index(str(INDEX_PATH))
         self.meta = pd.read_parquet(str(METADATA_PATH))
+        # Chuyển đổi sẵn sang list records để truy xuất O(1) cực nhanh, tránh overhead của pandas .iloc[]
+        self.meta_records = self.meta.to_dict("records")
         self.embed_model = SentenceTransformer(DEFAULT_EMBED_MODEL)
         self.effect_checker = get_checker()
         self.gemini_client = genai.Client()
@@ -165,7 +168,7 @@ class RAGService:
 
         chunks = []
         for score, idx in zip(scores[0], indices[0]):
-            row = self.meta.iloc[idx]
+            row = self.meta_records[idx]
             chunks.append({
                 "score": float(score),
                 "doc_id": str(row["doc_id"]),
@@ -196,10 +199,11 @@ class RAGService:
         top_k: int = 5,
         model_name: str = DEFAULT_LLM_MODEL,
         temperature: float = 0.2,
+        pre_retrieved_chunks: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         """Thực thi pipeline Baseline RAG (không kiểm tra hiệu lực)."""
         t0 = time.time()
-        chunks = self.retrieve(query, top_k=top_k)
+        chunks = pre_retrieved_chunks if pre_retrieved_chunks is not None else self.retrieve(query, top_k=top_k)
         context = self.build_baseline_context(chunks)
 
         user_message = f"""Ngữ cảnh (các đoạn văn bản pháp luật liên quan):
@@ -246,10 +250,11 @@ Câu hỏi: {query}"""
         top_k_llm: int = 5,
         model_name: str = DEFAULT_LLM_MODEL,
         temperature: float = 0.2,
+        pre_retrieved_chunks: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         """Thực thi pipeline Effect-Aware RAG (có gắn nhãn hiệu lực & rerank)."""
         t0 = time.time()
-        raw_chunks = self.retrieve(query, top_k=top_k_retrieve)
+        raw_chunks = pre_retrieved_chunks if pre_retrieved_chunks is not None else self.retrieve(query, top_k=top_k_retrieve)
         
         # Gắn thông tin hiệu lực và rerank (OK > WARNING > UNKNOWN > DANGER)
         enriched_chunks = self.effect_checker.check_chunks(raw_chunks)
@@ -307,7 +312,7 @@ Câu hỏi: {query}"""
             "latency": elapsed,
         }
 
-    # ── 4. Comparison (Side-by-side) ─────────────────────────────────────────
+    # ── 4. Comparison (Side-by-side) ───────────────────────────────────────
 
     def compare(
         self,
@@ -315,26 +320,35 @@ Câu hỏi: {query}"""
         top_k_retrieve: int = 7,
         top_k_llm: int = 5,
         model_name: str = DEFAULT_LLM_MODEL,
+        temperature: float = 0.2,
+        *args,
+        **kwargs,
     ) -> Dict[str, Any]:
-        """Chạy so sánh đối chứng giữa Baseline RAG và Effect-Aware RAG."""
+        """Chạy so sánh đối chứng song song (parallel) giữa Baseline RAG và Effect-Aware RAG."""
         t0 = time.time()
         
-        # 1. Chạy Baseline RAG
-        baseline_res = self.run_baseline(query, top_k=top_k_llm, model_name=model_name)
-        
-        # Nghỉ 1 giây để tránh spike đồng thời gây rate limit 429 trên Gemini Free
-        time.sleep(1.0)
-        
-        # 2. Chạy Effect-Aware RAG
-        effect_res = self.run_effect_aware(
-            query, top_k_retrieve=top_k_retrieve, top_k_llm=top_k_llm, model_name=model_name
-        )
+        # 1. Truy xuất FAISS 1 lần duy nhất cho cả 2 luồng (tránh tranh chấp CPU encoding trong thread)
+        max_k = max(top_k_retrieve, top_k_llm)
+        shared_chunks = self.retrieve(query, top_k=max_k)
+        base_chunks = shared_chunks[:top_k_llm]
+
+        # 2. Chạy song song cả hai luồng gọi LLM qua ThreadPoolExecutor
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future_base = executor.submit(
+                self.run_baseline, query, top_k=top_k_llm, model_name=model_name, temperature=temperature, pre_retrieved_chunks=base_chunks
+            )
+            future_eff = executor.submit(
+                self.run_effect_aware, query, top_k_retrieve=top_k_retrieve, top_k_llm=top_k_llm, model_name=model_name, temperature=temperature, pre_retrieved_chunks=shared_chunks
+            )
+            baseline_res = future_base.result()
+            effect_res = future_eff.result()
 
         # Phát hiện sự khác biệt mấu chốt
         baseline_danger_count = 0
         for c in baseline_res["chunks"]:
-            st = self.effect_checker.check_effect_status(c["doc_id"])
-            if st.level.value in ("DANGER", "WARNING"):
+            effect_st = self.effect_checker.check_effect_status(c["doc_id"])
+            if effect_st.level.value in ("DANGER", "WARNING"):
                 baseline_danger_count += 1
 
         has_diff = (baseline_danger_count > 0) or (
