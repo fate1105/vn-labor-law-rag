@@ -9,7 +9,7 @@
 Hệ thống tra cứu, tham mưu và hỗ trợ giải quyết tranh chấp pháp luật lao động Việt Nam theo Bộ luật Lao động 2019 và hệ thống văn bản hướng dẫn thi hành (đồng bộ từ vbpl.vn). Hệ thống khắc phục triệt để hiện tượng mô hình ngôn ngữ lớn (LLM) trích dẫn các điều luật đã hết hiệu lực thông qua **Đồ thị tri thức nhận thức hiệu lực (Effect-Aware Knowledge Graph RAG)** kết hợp **Phòng tác chiến Đa tác nhân (War Room Multi-Agent System)** 5 bước.
 
 - **Tác giả:** Trần Tấn Phúc
-- **Giảng viên hướng dẫn:** TS. Nguyễn Trung Kiệt
+- **Giảng viên hướng dẫn:** ThS. Nguyễn Trung Kiệt
 - **Ứng dụng trực tuyến:** [https://vn-labor-law-rag.streamlit.app](https://vn-labor-law-rag.streamlit.app)
 
 ---

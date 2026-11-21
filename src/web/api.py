@@ -1,6 +1,6 @@
 """
 FASTAPI BACKEND — HỆ THỐNG HỎI ĐÁP PHÁP LUẬT LAO ĐỘNG VIỆT NAM (EFFECT-AWARE RAG)
-Tác giả: Trần Tấn Phúc | GVHD: TS. Nguyễn Trung Kiệt
+Tác giả: Trần Tấn Phúc | GVHD: ThS. Nguyễn Trung Kiệt
 Chạy: uvicorn src.web.api:app --reload --port 8000
 """
 
@@ -11,15 +11,13 @@ from pydantic import BaseModel, Field
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-# Đảm bảo đường dẫn import hoạt động
+# Đảm bảo đường dẫn import thống nhất theo package gốc
 CURRENT_DIR = pathlib.Path(__file__).resolve().parent
 PROJECT_ROOT = CURRENT_DIR.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
-if str(CURRENT_DIR) not in sys.path:
-    sys.path.insert(0, str(CURRENT_DIR))
 
-from rag_service import RAGService
+from src.web.rag_service import RAGService
 
 app = FastAPI(
     title="VN Labor Law Effect-Aware RAG API",
@@ -66,7 +64,7 @@ def root():
     return {
         "project": "VN Labor Law RAG — Effect-Aware System",
         "author": "Trần Tấn Phúc",
-        "supervisor": "TS. Nguyễn Trung Kiệt",
+        "supervisor": "ThS. Nguyễn Trung Kiệt",
         "docs_url": "/docs",
     }
 

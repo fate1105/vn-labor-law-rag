@@ -1,11 +1,12 @@
 """
 GIAO DIỆN WEB CHATBOT HỎI ĐÁP PHÁP LUẬT LAO ĐỘNG VIỆT NAM (EFFECT-AWARE RAG)
-Tác giả: Trần Tấn Phúc | GVHD: TS. Nguyễn Trung Kiệt
+Tác giả: Trần Tấn Phúc | GVHD: ThS. Nguyễn Trung Kiệt
 Chạy: python -m streamlit run src/web/app.py
 """
 
 import os
 import sys
+import html
 import pathlib
 import warnings
 import logging
@@ -32,31 +33,29 @@ try:
 except Exception:
     pass
 
-# Đảm bảo đường dẫn import hoạt động
+# Đảm bảo đường dẫn import thống nhất theo package gốc để tránh nạp trùng module
 CURRENT_DIR = pathlib.Path(__file__).resolve().parent
 PROJECT_ROOT = CURRENT_DIR.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
-if str(CURRENT_DIR) not in sys.path:
-    sys.path.insert(0, str(CURRENT_DIR))
 
 # Import RAG Service, War Room Orchestrator và các UI Module đã tách gọn
-from rag_service import RAGService
+from src.web.rag_service import RAGService
 from src.agents.war_room import WarRoomOrchestrator
-from ui_styles import CUSTOM_CSS
-from comparison_ui import render_comparison_view, render_citation_box
-from war_room_ui import render_office, render_war_room_dossier, extract_case_dialogue_updates
-from benchmark_ui import render_benchmark_dashboard
+from src.web.ui_styles import CUSTOM_CSS
+from src.web.comparison_ui import render_comparison_view
+from src.web.war_room_ui import render_office, render_war_room_dossier, extract_case_dialogue_updates
+from src.web.benchmark_ui import render_benchmark_dashboard
 
 # ── Cấu hình trang Streamlit ─────────────────────────────────────────────────
 st.set_page_config(
-    page_title="VN Labor Law RAG — Hệ Thống Tra Cứu Pháp Luật Lao Động",
+    page_title="VN Labor Law RAG — Hệ Thống Tra Cứu & Tham Mưu Pháp Luật Lao Động",
     page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ── Custom CSS Nâng Cấp Giao Diện ───────────────────────────────────────────
+# ── Custom CSS Design System ─────────────────────────────────────────────────
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 
@@ -86,39 +85,42 @@ if "last_war_room_result" not in st.session_state:
 with st.sidebar:
     st.markdown(
         """
-        <div class="author-card">
-            <div class="author-name">Trần Tấn Phúc</div>
-       </div>
+        <article class="sidebar-brand-card">
+            <div class="sidebar-brand-eyebrow">⚖️ VN Labor Law AI</div>
+            <div class="sidebar-author-name">Trần Tấn Phúc</div>
+            <div class="sidebar-supervisor">GVHD: ThS. Nguyễn Trung Kiệt</div>
+            <span class="sidebar-live-pill">🟢 Graph &amp; FAISS Sẵn sàng</span>
+        </article>
         """,
         unsafe_allow_html=True,
     )
 
-    st.markdown("### Chế độ hoạt động")
+    st.markdown("#### 🧭 Chế độ vận hành")
     mode = st.radio(
-        "Chọn cơ chế thử nghiệm:",
+        "Chọn không gian làm việc:",
         options=[
             "🏛️ War Room Đa tác nhân (Multi-Agent Workflow)",
             "⚖️ So sánh song song (Baseline vs Effect-Aware)",
             "📊 Báo cáo Đánh giá Định lượng (Benchmark & Metrics)",
         ],
         index=0,
+        label_visibility="collapsed",
         help="'War Room' vận hành 5 Agent AI phối hợp xử lý vụ việc; 'So sánh song song' đối chứng trực quan 2 mô hình; 'Báo cáo Đánh giá' hiển thị toàn bộ số liệu benchmark.",
     )
 
-    with st.expander("🛠️ Cài đặt tham số mô hình", expanded=False):
+    with st.expander("🛠️ Tham số Mô hình & Truy xuất", expanded=False):
         model_name = st.selectbox(
             "Mô hình LLM:",
             options=["gemini-2.5-flash", "gemini-3.5-flash-lite"],
             index=0,
-            help="gemini-2.5-flash phản hồi nhanh nhất (~1s) và ổn định cao trên Google AI Studio.",
+            help="gemini-2.5-flash phản hồi nhanh (~1s) và ổn định cao trên Google AI Studio.",
         )
         top_k_retrieve = st.slider("Top-K truy xuất FAISS:", min_value=3, max_value=12, value=7, step=1)
         top_k_llm = st.slider("Top-K đưa vào LLM:", min_value=3, max_value=7, value=5, step=1)
         temperature = st.slider("Temperature (Độ sáng tạo):", min_value=0.0, max_value=0.7, value=0.2, step=0.05)
 
-    st.markdown("---")
-    st.markdown("### Tra cứu phả hệ văn bản")
-    with st.expander("Kiểm tra trạng thái & đồ thị quan hệ", expanded=False):
+    st.markdown("#### 🕸️ Tra cứu phả hệ văn bản")
+    with st.expander("Kiểm tra hiệu lực & cây quan hệ", expanded=False):
         search_kw = st.text_input("Nhập ID hoặc số hiệu (VD: 45/2019, 122/2015, 38/2022):", key="doc_search_input")
         if search_kw:
             found_docs = service.search_docs(search_kw.strip(), limit=5)
@@ -141,21 +143,31 @@ with st.sidebar:
                             st.caption("(Không có quan hệ tác động nào trong DB)")
                     st.markdown("---")
 
-    st.markdown("---")
-    st.markdown("### Chỉ số cơ sở tri thức")
-    col_sb1, col_sb2 = st.columns(2)
-    with col_sb1:
-        st.metric("Văn bản lọc", "800")
-        st.metric("Vector chunks", "42,592")
-    with col_sb2:
-        st.metric("Quan hệ pháp lý", "43,478")
-        st.metric("Chiều vector", "768d")
+    st.markdown("#### 🗄️ Cơ sở tri thức pháp lý")
     st.markdown(
         """
-        <div style="font-size:0.78rem; color:#475569; line-height:1.5; margin-top:10px; padding:8px 10px; background:#f1f5f9; border-radius:8px; border:1px solid #e2e8f0;">
-            🤗 <b>Dataset:</b> <a href="https://huggingface.co/datasets/th1nhng0/vietnamese-legal-documents" target="_blank" style="color:#2563eb; text-decoration:none; font-weight:600;"><code>th1nhng0/vietnamese-legal-documents</code></a><br>
-            🏛️ <b>Nguồn gốc:</b> vbpl.vn (Bộ Tư pháp)<br>
-            ⚡ <b>Embedding:</b> <code>vietnamese-bi-encoder</code> (768d)
+        <div class="sb-stat-grid">
+            <div class="sb-stat-item">
+                <div class="sb-stat-val">800</div>
+                <div class="sb-stat-lbl">Văn bản quy phạm</div>
+            </div>
+            <div class="sb-stat-item">
+                <div class="sb-stat-val">42,592</div>
+                <div class="sb-stat-lbl">Chunks Điều/Khoản</div>
+            </div>
+            <div class="sb-stat-item">
+                <div class="sb-stat-val">43,478</div>
+                <div class="sb-stat-lbl">Liên kết hiệu lực</div>
+            </div>
+            <div class="sb-stat-item">
+                <div class="sb-stat-val">768d</div>
+                <div class="sb-stat-lbl">Bi-Encoder Vector</div>
+            </div>
+        </div>
+        <div class="sb-source-card">
+            🤗 <b>Dataset:</b> <a href="https://huggingface.co/datasets/th1nhng0/vietnamese-legal-documents" target="_blank" rel="noopener noreferrer">th1nhng0/vietnamese-legal-documents</a><br>
+            🏛️ <b>Nguồn chuẩn:</b> Cổng thông tin vbpl.vn<br>
+            ⚡ <b>Đồ thị:</b> 36,726 đỉnh • Duyệt &lt; 0.02s
         </div>
         """,
         unsafe_allow_html=True,
@@ -167,48 +179,74 @@ if "Báo cáo Đánh giá" in mode:
     render_benchmark_dashboard(PROJECT_ROOT)
     st.stop()
 
-# ── Main Area Header Banner ──────────────────────────────────────────────────
+# ── Main Area Context-Aware Hero Banner ──────────────────────────────────────
+is_war_room = "War Room" in mode
+hero_tag = (
+    "🏛️ PHÒNG TÁC CHIẾN ĐA TÁC NHÂN • MULTI-AGENT LEGAL WORKFLOW"
+    if is_war_room
+    else "⚖️ ĐỐI CHỨNG HIỆU LỰC SONG SONG • EFFECT-AWARE KNOWLEDGE GRAPH RAG"
+)
+hero_desc = (
+    "Điều phối khép kín <strong>5 Chuyên gia AI</strong>: Rà soát điều luật hiện hành, thiết kế phương án xử lý, phản biện rủi ro thời hiệu, soạn thảo công văn chuẩn <strong>Nghị định 30/2020/NĐ-CP</strong> và chấm điểm ma trận MCDA."
+    if is_war_room
+    else "Đối chứng trực tiếp giữa <strong>Baseline RAG</strong> và <strong>Effect-Aware RAG</strong> theo <strong>Bộ luật Lao động 2019</strong> (cập nhật hết năm <strong>2024</strong>) — tự động phát hiện và ngăn chặn dẫn chiếu văn bản hết hiệu lực."
+)
+
 st.markdown(
-    """
-    <div class="hero-banner">
-        <div class="hero-title">Hệ Thống Hỏi Đáp Pháp Luật Lao Động Việt Nam</div>
-        <div class="hero-subtitle">
-            Hỗ trợ tra cứu &amp; tham mưu xử lý tranh chấp theo <b>Bộ luật Lao động 2019</b> (Dữ liệu quy phạm pháp luật cập nhật tính đến hết năm <b>2024</b>).
+    f"""
+    <header class="hero-banner">
+        <div class="hero-tag">{hero_tag}</div>
+        <h1 class="hero-title">Hệ Thống Hỏi Đáp &amp; Tham Mưu Pháp Luật Lao Động Việt Nam</h1>
+        <p class="hero-subtitle">{hero_desc}</p>
+        <div class="hero-badges-row">
+            <span class="hero-pill">📚 Phạm vi: <b>Bộ luật Lao động 2019 &amp; BHXH</b></span>
+            <span class="hero-pill">🕸️ Đồ thị tri thức: <b>36,726 đỉnh / 42,571 cạnh</b></span>
+            <span class="hero-pill">🛡️ Lá chắn hiệu lực: <b>OK • WARNING • DANGER</b></span>
         </div>
-    </div>
+    </header>
     """,
     unsafe_allow_html=True,
 )
 
 # ── Câu hỏi mẫu (Quick Prompts) ─────────────────────────────────────────────
-if "War Room" in mode:
-    st.markdown("##### Tình huống vụ việc mẫu (Nhấp để chọn):")
+if is_war_room:
+    st.markdown(
+        '<div class="section-eyebrow"><span>📋 Hồ sơ tình huống tranh chấp điển hình (Nhấp để nạp nhanh vào phòng tác chiến):</span></div>',
+        unsafe_allow_html=True,
+    )
     sample_questions = [
-        ("Sa thải lao động mang thai", "Bà Lê Thị Hương, công nhân may tại Công ty TNHH May mặc Hưng Thịnh, đang mang thai tháng thứ 5. Do ốm sốt thai kỳ, bà nghỉ việc 03 ngày có giấy xác nhận của Trạm Y tế xã. Giám đốc công ty ban hành quyết định sa thải ngay lập tức và giữ 15 ngày lương tháng gần nhất. Bà Hương gửi đơn khiếu nại đến UBND xã yêu cầu can thiệp bảo vệ quyền lợi."),
-        ("Ép tăng ca vượt trần 300h", "Công ty Cơ khí Đại Phát bắt công nhân làm thêm 65 giờ trong tháng và đã tích lũy 340 giờ trong năm. Doanh nghiệp đe dọa trừ điểm thi đua và không tái ký hợp đồng nếu ai từ chối làm thêm. Tập thể công nhân làm đơn kiến nghị UBND xã can thiệp."),
-        ("Giữ bằng gốc & trừ cọc", "Công ty Bảo vệ Tân Bình giữ bản chính bằng đại học và thu tiền đặt cọc 5 triệu đồng của nhân viên khi ký hợp đồng. Khi nhân viên xin nghỉ việc đúng thời hạn báo trước, công ty từ chối trả lại bằng và không thanh toán lương tháng cuối. Người lao động khiếu nại lên cơ quan chức năng."),
-        ("Cắt HĐLĐ vì cách ly y tế", "Người lao động phải nghỉ việc 07 ngày để cách ly y tế do dịch bệnh truyền nhiễm. Công ty đơn phương chấm dứt hợp đồng lao động vì lý do tự ý bỏ việc trên 05 ngày cộng dồn và không trả trợ cấp thôi việc. Người lao động gửi đơn đề nghị giải quyết tranh chấp."),
+        ("🤰 Sa thải lao động mang thai", "Bà Lê Thị Hương, công nhân may tại Công ty TNHH May mặc Hưng Thịnh, đang mang thai tháng thứ 5. Do ốm sốt thai kỳ, bà nghỉ việc 03 ngày có giấy xác nhận của Trạm Y tế xã. Giám đốc công ty ban hành quyết định sa thải ngay lập tức và giữ 15 ngày lương tháng gần nhất. Bà Hương gửi đơn khiếu nại đến UBND xã yêu cầu can thiệp bảo vệ quyền lợi."),
+        ("⏰ Ép tăng ca vượt trần 300h", "Công ty Cơ khí Đại Phát bắt công nhân làm thêm 65 giờ trong tháng và đã tích lũy 340 giờ trong năm. Doanh nghiệp đe dọa trừ điểm thi đua và không tái ký hợp đồng nếu ai từ chối làm thêm. Tập thể công nhân làm đơn kiến nghị UBND xã can thiệp."),
+        ("🎓 Giữ bằng gốc & trừ cọc", "Công ty Bảo vệ Tân Bình giữ bản chính bằng đại học và thu tiền đặt cọc 5 triệu đồng của nhân viên khi ký hợp đồng. Khi nhân viên xin nghỉ việc đúng thời hạn báo trước, công ty từ chối trả lại bằng và không thanh toán lương tháng cuối. Người lao động khiếu nại lên cơ quan chức năng."),
+        ("🏥 Cắt HĐLĐ vì cách ly y tế", "Người lao động phải nghỉ việc 07 ngày để cách ly y tế do dịch bệnh truyền nhiễm. Công ty đơn phương chấm dứt hợp đồng lao động vì lý do tự ý bỏ việc trên 05 ngày cộng dồn và không trả trợ cấp thôi việc. Người lao động gửi đơn đề nghị giải quyết tranh chấp."),
     ]
 else:
-    st.markdown("##### Câu hỏi kiểm thử điển hình (Nhấp để thử nghiệm):")
+    st.markdown(
+        '<div class="section-eyebrow"><span>🔍 Câu hỏi kiểm thử điển hình (Nhấp để chạy đối chứng song song):</span></div>',
+        unsafe_allow_html=True,
+    )
     sample_questions = [
-        ("Lương tối thiểu vùng", "Mức lương tối thiểu vùng hiện tại là bao nhiêu?"),
-        ("Giờ làm thêm tối đa", "Người lao động được làm thêm tối đa bao nhiêu giờ trong một năm?"),
-        ("Trợ cấp thôi việc", "Người lao động đơn phương chấm dứt hợp đồng lao động có được trợ cấp thôi việc không?"),
-        ("Nghỉ việc thai sản", "Thời gian nghỉ việc hưởng chế độ thai sản của lao động nữ là bao nhiêu tuần?"),
+        ("💰 Lương tối thiểu vùng", "Mức lương tối thiểu vùng hiện tại là bao nhiêu?"),
+        ("⏱️ Giờ làm thêm tối đa", "Người lao động được làm thêm tối đa bao nhiêu giờ trong một năm?"),
+        ("📄 Trợ cấp thôi việc", "Người lao động đơn phương chấm dứt hợp đồng lao động có được trợ cấp thôi việc không?"),
+        ("👶 Nghỉ việc thai sản", "Thời gian nghỉ việc hưởng chế độ thai sản của lao động nữ là bao nhiêu tuần?"),
     ]
 
 quick_cols = st.columns(4)
 for i, (label, q_text) in enumerate(sample_questions):
     with quick_cols[i]:
-        if st.button(f"{label}", use_container_width=True, key=f"qp_{i}"):
+        if st.button(label, use_container_width=True, key=f"qp_{i}"):
             st.session_state.selected_query = q_text
             st.session_state.last_compare_result = None
             st.session_state.last_war_room_result = None
             st.rerun()
 
 # ── Khung chat / Input ───────────────────────────────────────────────────────
-input_placeholder = "Mô tả vụ việc tranh chấp, khiếu nại hoặc công văn cần xử lý..." if "War Room" in mode else "Nhập câu hỏi tra cứu pháp luật (VD: tiền lương, hợp đồng lao động, bảo hiểm xã hội)..."
+input_placeholder = (
+    "Mô tả tình huống tranh chấp, khiếu nại hoặc công văn cần tham mưu xử lý..."
+    if is_war_room
+    else "Nhập câu hỏi tra cứu pháp luật lao động (VD: tiền lương, thử việc, kỷ luật sa thải, BHXH)..."
+)
 user_query = st.chat_input(input_placeholder)
 
 # Nếu người dùng bấm câu hỏi mẫu
@@ -219,7 +257,7 @@ if st.session_state.selected_query and not user_query:
 # ── Xử lý khi có câu hỏi ─────────────────────────────────────────────────────
 if user_query:
     with st.chat_message("user"):
-        st.markdown(f"**🔍 Câu hỏi tra cứu:** `{user_query}`")
+        st.markdown(f"**📌 Nội dung yêu cầu:** {html.escape(user_query)}")
 
     # 1. Chế độ: SO SÁNH SONG SONG (Chạy song song đồng thời cả 2 mô hình)
     if "So sánh" in mode:
@@ -246,11 +284,10 @@ if user_query:
             render_comparison_view(comp)
 
     # 2. Chế độ: WAR ROOM ĐA TÁC NHÂN (Multi-Agent System)
-    elif "War Room" in mode:
+    elif is_war_room:
         with st.chat_message("assistant"):
-            st.markdown("### Phòng Tác Chiến War Room — Phối hợp 5 Agent xử lý vụ việc")
+            st.markdown("### 🏛️ Phòng Tác Chiến War Room — Phối hợp 5 Chuyên gia AI")
 
-            # Khởi tạo trạng thái ban đầu của 5 bàn làm việc trong phòng ban
             agent_states = {
                 1: {"status": "waiting", "speech": "Chờ lệnh tra cứu hồ sơ..."},
                 2: {"status": "waiting", "speech": "Chờ nhận căn cứ pháp lý..."},
@@ -267,11 +304,10 @@ if user_query:
                 5: "🏆 Đã hoàn tất ma trận MCDA và khuyến nghị phương án tối ưu.",
             }
             SCENE_BY_STEP = {1: "search", 2: "consult2", 3: "debate3", 4: "consult4", 5: "report"}
-            SCENE_SECONDS = {1: 9, 2: 10, 3: 14, 4: 10, 5: 11}   # thời lượng tối thiểu của mỗi cảnh
-            HANDOFF_SECONDS = 5.2                                  # đi + trò chuyện + đi về
+            SCENE_SECONDS = {1: 9, 2: 10, 3: 14, 4: 10, 5: 11}
+            HANDOFF_SECONDS = 5.2
             scene_t0 = 0.0
 
-            # Kịch bản hội thoại động thích ứng theo kết quả thực tế của vụ án (0 token)
             case_dialogue = {
                 "handoff": [
                     ["Em gửi căn cứ pháp lý nhé!",      "Đã nhận, em lập phương án ngay 👀"],
@@ -345,15 +381,12 @@ if user_query:
 
                 elif stt == "completed" and isinstance(step, int):
                     out = event["output"]
-                    # Cập nhật lời thoại động bám sát kết quả thực tế của Agent (0 token)
                     case_dialogue = extract_case_dialogue_updates(step, out, case_dialogue)
 
-                    # nếu LLM trả lời nhanh hơn cảnh diễn thì chờ cho cảnh diễn xong
                     time.sleep(max(0.0, SCENE_SECONDS.get(step, 0) - (time.time() - scene_t0)))
                     prev = copy.deepcopy(agent_states)
                     agent_states[step]["status"] = "done"
 
-                    # Hiển thị tóm tắt thực tế trên thẻ bàn Agent
                     dyn_speech = case_dialogue["finale"][step - 1] if step <= len(case_dialogue["finale"]) else ""
                     agent_states[step]["speech"] = dyn_speech if dyn_speech else summary_speech_map.get(step, f"Hoàn thành ({out.latency:.1f}s)")
                     status_box.write(f"✅ **[{out.agent_name}]** hoàn tất ({out.latency:.2f}s) — *{out.title}*")
@@ -382,7 +415,10 @@ elif "So sánh" in mode and st.session_state.last_compare_result is not None:
     saved_query, comp = st.session_state.last_compare_result
     col_hdr, col_btn = st.columns([5, 1])
     with col_hdr:
-        st.markdown(f"**🔍 Câu hỏi đang tra cứu:** `{saved_query}`")
+        st.markdown(
+            f'<div class="query-context-bar"><b>🔍 Câu hỏi đang tra cứu:</b> {html.escape(saved_query)}</div>',
+            unsafe_allow_html=True,
+        )
     with col_btn:
         if st.button("🔄 Câu hỏi mới", key="btn_clear_compare", use_container_width=True):
             st.session_state.last_compare_result = None
@@ -391,11 +427,14 @@ elif "So sánh" in mode and st.session_state.last_compare_result is not None:
         st.markdown("### ⚖️ Kết quả đối chứng song song giữa hai mô hình RAG")
         render_comparison_view(comp)
 
-elif "War Room" in mode and st.session_state.last_war_room_result is not None:
+elif is_war_room and st.session_state.last_war_room_result is not None:
     saved_query, final_res = st.session_state.last_war_room_result
     col_hdr, col_btn = st.columns([5, 1])
     with col_hdr:
-        st.markdown(f"**🔍 Tình huống vụ việc đang xử lý:** `{saved_query}`")
+        st.markdown(
+            f'<div class="query-context-bar"><b>📋 Hồ sơ vụ việc đang xử lý:</b> {html.escape(saved_query)}</div>',
+            unsafe_allow_html=True,
+        )
     with col_btn:
         if st.button("🔄 Vụ việc mới", key="btn_clear_war_room", use_container_width=True):
             st.session_state.last_war_room_result = None
@@ -404,9 +443,8 @@ elif "War Room" in mode and st.session_state.last_war_room_result is not None:
         render_war_room_dossier(final_res)
 
 else:
-    # Trạng thái chờ ban đầu (khi chưa nhập câu hỏi)
-    if "War Room" in mode:
-        st.markdown("### Phòng Tác Chiến War Room (5 Chuyên gia AI)")
+    if is_war_room:
+        st.markdown("### 🏛️ Phòng Tác Chiến War Room (5 Chuyên gia AI trực ban)")
         idle_states = {
             1: {"status": "waiting", "speech": "Chờ lệnh tra cứu hồ sơ..."},
             2: {"status": "waiting", "speech": "Chờ nhận căn cứ pháp lý..."},
@@ -418,5 +456,5 @@ else:
         render_office(
             standby_ph,
             idle_states,
-            "Phòng tác chiến đang ở trạng thái trực ban — Vui lòng nhấp chọn tình huống mẫu phía trên hoặc nhập vụ việc bên dưới để bắt đầu hội chẩn.",
+            "Phòng tác chiến đang ở trạng thái trực ban — Nhấp chọn một hồ sơ mẫu phía trên hoặc nhập vụ việc bên dưới để bắt đầu hội chẩn.",
         )

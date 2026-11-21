@@ -57,51 +57,59 @@ AGENTS_META = [
 # ── VIRTUAL 2D SVG+JS INTERACTIVE OFFICE SCENE (COMPONENTS.HTML) ──────────────
 OFFICE_SCENE_TEMPLATE = r"""
 <!DOCTYPE html>
-<html><head><meta charset="utf-8">
+<html lang="vi"><head><meta charset="utf-8">
 <style>
-  html,body{margin:0;padding:0;background:transparent;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
-  .wrap{border:1px solid #cbd5e1;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 10px 25px -5px rgba(15,23,42,.08);}
+  html,body{margin:0;padding:0;background:transparent;font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.45;}
+  .wrap{border:1px solid #cbd5e1;border-radius:1rem;overflow:hidden;background:#fff;box-shadow:0 12px 28px -6px rgba(15,23,42,.1),0 4px 10px -2px rgba(15,23,42,.05);}
   svg{display:block;width:100%;height:auto;}
-  .bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:13px;color:#334155;}
-  .dot{width:10px;height:10px;border-radius:50%;background:#16a34a;box-shadow:0 0 8px rgba(22,163,74,.6);animation:pd 1.2s infinite;}
-  @keyframes pd{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.3);opacity:1}}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;padding:0.55rem 1rem;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:0.8125rem;color:#334155;min-block-size:2.25rem;}
+  .bar-left{display:flex;align-items:center;gap:0.6rem;min-width:0;}
+  .dot{width:0.625rem;height:0.625rem;flex-shrink:0;border-radius:50%;background:#16a34a;box-shadow:0 0 8px rgba(22,163,74,.6);}
+  .motion-btn{border:1px solid #cbd5e1;background:#ffffff;color:#334155;border-radius:0.45rem;padding:0.22rem 0.65rem;font-size:0.75rem;font-weight:600;cursor:pointer;min-block-size:1.65rem;white-space:nowrap;transition:background-color 150ms ease-out,border-color 150ms ease-out,scale 120ms ease-out;}
+  .motion-btn:hover{border-color:#2563eb;color:#2563eb;background:#eff6ff;}
+  .motion-btn:active{scale:0.97;}
+  .motion-btn:focus-visible{outline:2px solid #2563eb;outline-offset:2px;}
 
-  /* gõ phím */
   .armL,.armR{transform-box:fill-box;}
-  .typing .armL{animation:tp .28s infinite alternate ease-in-out;}
-  .typing .armR{animation:tp .28s .14s infinite alternate ease-in-out;}
-  @keyframes tp{from{transform:translateY(0)}to{transform:translateY(-7px)}}
-  /* nhún người khi làm việc */
-  .typing .body{animation:bob .6s infinite alternate ease-in-out;transform-box:fill-box;transform-origin:center bottom;}
-  @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
-  /* ngủ gật */
-  .sleep .head{transform-box:fill-box;transform-origin:center bottom;transform:rotate(14deg) translateY(10px);animation:nod 2.4s infinite ease-in-out;}
-  @keyframes nod{0%,100%{transform:rotate(14deg) translateY(10px)}50%{transform:rotate(8deg) translateY(6px)}}
-  .zzz text{animation:zf 2.2s infinite;opacity:0;font-weight:800;fill:#64748b;}
-  .zzz text:nth-child(2){animation-delay:.7s}.zzz text:nth-child(3){animation-delay:1.4s}
-  @keyframes zf{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(14px,-26px)}}
-  /* hơi nóng cà phê */
-  .steam path{fill:none;stroke:#cbd5e1;stroke-width:2;stroke-linecap:round;animation:st 2s infinite;opacity:0;}
-  .steam path:nth-child(2){animation-delay:.8s}
-  @keyframes st{0%{opacity:0;transform:translateY(4px)}50%{opacity:.9}100%{opacity:0;transform:translateY(-8px)}}
-  /* màn hình chạy chữ */
-  .scr line{stroke:#e0f2fe;stroke-width:3;stroke-linecap:round;animation:ln 1s infinite alternate;}
-  .scr line:nth-child(2){animation-delay:.2s}.scr line:nth-child(3){animation-delay:.4s}.scr line:nth-child(4){animation-delay:.6s}
-  @keyframes ln{from{opacity:.25}to{opacity:1}}
-  /* vòng sáng nhân vật đang nói */
-  .ring{animation:rg 1.2s infinite alternate;}
-  @keyframes rg{from{opacity:.25}to{opacity:.8}}
-  /* giơ tay vẫy chào khi xong */
-  .done .waveArm{animation:waveArm .7s infinite alternate ease-in-out;}
-  @keyframes waveArm{
-    from{transform:rotate(-8deg);}
-    to{transform:rotate(16deg);}
+  .sleep .head{transform-box:fill-box;transform-origin:center bottom;transform:rotate(12deg) translateY(8px);}
+  .zzz text{opacity:0;font-weight:800;fill:#64748b;}
+  .steam path{fill:none;stroke:#cbd5e1;stroke-width:2;stroke-linecap:round;opacity:0;}
+  .scr line{stroke:#e0f2fe;stroke-width:3;stroke-linecap:round;}
+
+  @media (prefers-reduced-motion: no-preference) {
+    body:not(.paused) .dot{animation:pd 1.2s infinite;}
+    body:not(.paused) .typing .armL{animation:tp .28s infinite alternate ease-in-out;}
+    body:not(.paused) .typing .armR{animation:tp .28s .14s infinite alternate ease-in-out;}
+    body:not(.paused) .typing .body{animation:bob .6s infinite alternate ease-in-out;transform-box:fill-box;transform-origin:center bottom;}
+    body:not(.paused) .sleep .head{animation:nod 2.4s infinite ease-in-out;}
+    body:not(.paused) .zzz text{animation:zf 2.2s infinite;}
+    body:not(.paused) .zzz text:nth-child(2){animation-delay:.7s}
+    body:not(.paused) .zzz text:nth-child(3){animation-delay:1.4s}
+    body:not(.paused) .steam path{animation:st 2s infinite;}
+    body:not(.paused) .steam path:nth-child(2){animation-delay:.8s}
+    body:not(.paused) .scr line{animation:ln 1s infinite alternate;}
+    body:not(.paused) .scr line:nth-child(2){animation-delay:.2s}
+    body:not(.paused) .scr line:nth-child(3){animation-delay:.4s}
+    body:not(.paused) .scr line:nth-child(4){animation-delay:.6s}
+    body:not(.paused) .ring{animation:rg 1.2s infinite alternate;}
+    body:not(.paused) .done .waveArm{animation:waveArm .7s infinite alternate ease-in-out;}
   }
-  .bubble{box-sizing:border-box;width:100%;height:100%;padding:4px 8px;border-radius:10px;background:#fff;border:1.5px solid #cbd5e1;
-          font-size:10.5px;line-height:1.26;font-weight:600;color:#1e293b;display:flex;align-items:center;justify-content:center;text-align:center;word-break:normal;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+
+  @keyframes pd{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.3);opacity:1}}
+  @keyframes tp{from{transform:translateY(0)}to{transform:translateY(-7px)}}
+  @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+  @keyframes nod{0%,100%{transform:rotate(14deg) translateY(10px)}50%{transform:rotate(8deg) translateY(6px)}}
+  @keyframes zf{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(14px,-26px)}}
+  @keyframes st{0%{opacity:0;transform:translateY(4px)}50%{opacity:.9}100%{opacity:0;transform:translateY(-8px)}}
+  @keyframes ln{from{opacity:.25}to{opacity:1}}
+  @keyframes rg{from{opacity:.25}to{opacity:.8}}
+  @keyframes waveArm{from{transform:rotate(-8deg);}to{transform:rotate(16deg);}}
+
+  .bubble{box-sizing:border-box;width:100%;min-block-size:100%;padding:0.25rem 0.5rem;border-radius:0.625rem;background:#fff;border:1.5px solid #cbd5e1;
+          font-size:0.66rem;line-height:1.28;font-weight:600;color:#1e293b;display:flex;align-items:center;justify-content:center;text-align:center;overflow-wrap:break-word;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
   .bubble.active{border-color:#2563eb;background:#eff6ff;box-shadow:0 0 0 2px rgba(37,99,235,0.22);}
   .bubble.done{border-color:#86efac;background:#f0fdf4;color:#166534;}
-  .pop{animation:pop .35s ease-out;}
+  .pop{animation:pop .35s ease-out;transform-box:fill-box;transform-origin:50% 100%;}
   @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
 
   /* người đi bộ */
@@ -118,49 +126,47 @@ OFFICE_SCENE_TEMPLATE = r"""
   .alert text{animation:al .5s infinite alternate;}
   @keyframes al{from{transform:translateY(0)}to{transform:translateY(-6px)}}
 
-  /* bong bóng đang trò chuyện */
   .bubble.chat{border-color:#f59e0b;background:#fffbeb;color:#78350f;}
-  /* sửa lỗi bong bóng "trượt" từ góc trái khi hiện */
-  .pop{transform-box:fill-box;transform-origin:50% 100%;}
 
   /* ── THANH TIẾN TRÌNH PIPELINE STEPPER ── */
   .stepper-wrap{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:8px 16px;
+    padding:0.5rem 1rem;
     background:#ffffff;
     border-top:1px solid #e2e8f0;
-    gap:4px;
+    gap:0.35rem;
     overflow-x:auto;
   }
   .step-item{
     display:flex;
     align-items:center;
-    gap:6px;
-    padding:4px 10px;
-    border-radius:20px;
-    font-size:11.5px;
+    gap:0.4rem;
+    padding:0.25rem 0.65rem;
+    min-block-size:1.65rem;
+    border-radius:999px;
+    font-size:0.72rem;
     font-weight:700;
     color:#64748b;
     background:#f8fafc;
-    border:1px solid #e2e8f0;
-    transition:all .3s ease;
+    border:1.5px solid #e2e8f0;
+    transition:background-color .25s ease,border-color .25s ease,color .25s ease;
     white-space:nowrap;
   }
   .step-badge{
-    width:18px;
-    height:18px;
+    min-inline-size:1.15rem;
+    min-block-size:1.15rem;
     border-radius:50%;
     background:#94a3b8;
     color:#ffffff;
-    display:flex;
+    display:inline-flex;
     align-items:center;
     justify-content:center;
-    font-size:10px;
+    font-size:0.65rem;
     font-weight:800;
   }
-  .step-sep{color:#cbd5e1;font-size:11px;font-weight:700;}
+  .step-sep{color:#cbd5e1;font-size:0.75rem;font-weight:700;}
   .step-item.active{
     background:#eff6ff;
     border-color:#3b82f6;
@@ -194,7 +200,10 @@ OFFICE_SCENE_TEMPLATE = r"""
     <div class="step-sep">➔</div>
     <div id="step-pill-5" class="step-item"><span class="step-badge">5</span><span class="step-label">Trưởng ban Duyệt</span></div>
   </div>
-  <div class="bar"><span class="dot"></span><b>Tiến trình phối hợp:</b><span id="msg"></span></div>
+  <div class="bar">
+    <div class="bar-left"><span class="dot"></span><b>Tiến trình phối hợp:</b><span id="msg"></span></div>
+    <button id="motionBtn" type="button" class="motion-btn">⏸ Tạm dừng chuyển động</button>
+  </div>
 </div>
 <script>
 const D = __DATA__;
@@ -599,8 +608,27 @@ const SCENES = {
   }
 };
 
-/* ───────── 4) HOẠT ĐỘNG NGẪU NHIÊN CỦA NGƯỜI ĐANG CHỜ ───────── */
+/* ───────── 4) HOẠT ĐỘNG NGẪU NHIÊN & NÚT DỪNG CHUYỂN ĐỘNG (WCAG 2.2.2) ───────── */
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const motionBtn = document.getElementById("motionBtn");
+let isPaused = reducedMotion;
+if(isPaused && motionBtn){
+  document.body.classList.add("paused");
+  motionBtn.textContent = "▶ Tiếp tục chuyển động";
+}
+if(motionBtn){
+  motionBtn.addEventListener("click", () => {
+    isPaused = !isPaused;
+    document.body.classList.toggle("paused", isPaused);
+    motionBtn.textContent = isPaused ? "▶ Tiếp tục chuyển động" : "⏸ Tạm dừng chuyển động";
+    document.getAnimations({ subtree: true }).forEach(anim => {
+      if(isPaused) anim.pause(); else anim.play();
+    });
+  });
+}
+
 function idle(){
+  if(isPaused) return;
   const w = D.agents.map((a,i) => i).filter(i => (D.states[D.agents[i].id]||{}).status === "waiting");
   if(!w.length) return;
   const i = w[Math.floor(Math.random()*w.length)];
@@ -787,6 +815,9 @@ def extract_case_dialogue_updates(step: int, output, case_dialogue: dict) -> dic
     return case_dialogue
 
 
+_STANDBY_HTML_CACHE: dict[str, str] = {}
+
+
 def generate_war_room_scene_html(
     agent_states: dict,
     action_msg: str,
@@ -794,6 +825,10 @@ def generate_war_room_scene_html(
     scene: str = None,
     case_lines: dict = None,
 ) -> str:
+    is_standby = prev_states is None and scene is None and case_lines is None
+    if is_standby and action_msg in _STANDBY_HTML_CACHE:
+        return _STANDBY_HTML_CACHE[action_msg]
+
     data = {
         "agents": [{"id": a["id"], "name": a["name"], "title": a["title"]} for a in AGENTS_META],
         "states": {str(k): v for k, v in agent_states.items()},
@@ -803,7 +838,10 @@ def generate_war_room_scene_html(
         "lines": case_lines or {},
     }
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
-    return OFFICE_SCENE_TEMPLATE.replace("__DATA__", payload)
+    rendered = OFFICE_SCENE_TEMPLATE.replace("__DATA__", payload)
+    if is_standby:
+        _STANDBY_HTML_CACHE[action_msg] = rendered
+    return rendered
 
 
 def render_office(placeholder, agent_states, action_msg, prev_states=None, scene=None, case_lines=None):
@@ -824,83 +862,92 @@ def format_a4_html(text: str) -> str:
     for line in lines:
         raw_strip = line.strip()
         if not raw_strip:
-            out.append("<div style='height:12px;'></div>")
+            out.append("<div style='min-block-size:0.75rem;'></div>")
             continue
         if raw_strip == "---":
-            out.append("<hr style='border:none; border-top:1px solid #cbd5e1; margin:16px 0;'/>")
+            out.append("<hr style='border:none; border-top:1px solid #cbd5e1; margin:1rem 0;'/>")
             continue
 
         if raw_strip.startswith("### "):
             h = html.escape(raw_strip[4:])
-            out.append(f"<div style='font-size:1.15rem; font-weight:700; margin:14px 0 6px 0; text-align:center;'>{h}</div>")
+            out.append(f"<div style='font-size:1.125rem; font-weight:700; margin:0.9rem 0 0.4rem 0; text-align:center;'>{h}</div>")
             continue
         elif raw_strip.startswith("## "):
             h = html.escape(raw_strip[3:])
-            out.append(f"<div style='font-size:1.25rem; font-weight:700; margin:16px 0 8px 0; text-align:center;'>{h}</div>")
+            out.append(f"<div style='font-size:1.22rem; font-weight:700; margin:1rem 0 0.5rem 0; text-align:center;'>{h}</div>")
             continue
         elif raw_strip.startswith("# "):
             h = html.escape(raw_strip[2:])
-            out.append(f"<div style='font-size:1.35rem; font-weight:800; margin:18px 0 10px 0; text-align:center;'>{h}</div>")
+            out.append(f"<div style='font-size:1.32rem; font-weight:800; margin:1.1rem 0 0.6rem 0; text-align:center;'>{h}</div>")
             continue
 
         l = html.escape(line)
-        l = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", l)
-        l = re.sub(r"\*(.+?)\*", r"<i>\1</i>", l)
+        l = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", l)
+        l = re.sub(r"\*(.+?)\*", r"<em>\1</em>", l)
 
         upper_l = raw_strip.upper()
         if "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM" in upper_l or "ĐỘC LẬP - TỰ DO - HẠNH PHÚC" in upper_l:
-            out.append(f"<div style='text-align:center; font-weight:700; line-height:1.4;'>{l}</div>")
+            out.append(f"<div style='text-align:center; font-weight:700; line-height:1.45;'>{l}</div>")
         elif raw_strip.startswith("GIẤY MỜI") or raw_strip.startswith("CÔNG VĂN") or raw_strip.startswith("BIÊN BẢN") or raw_strip.startswith("QUYẾT ĐỊNH"):
-            out.append(f"<div style='text-align:center; font-size:1.2rem; font-weight:800; margin:14px 0 6px 0;'>{l}</div>")
+            out.append(f"<div style='text-align:center; font-size:1.2rem; font-weight:800; margin:0.9rem 0 0.4rem 0;'>{l}</div>")
         else:
-            out.append(f"<div style='margin-bottom:6px; line-height:1.65;'>{l}</div>")
+            out.append(f"<div style='margin-bottom:0.4rem; line-height:1.68;'>{l}</div>")
     return "\n".join(out)
 
 
 def render_war_room_dossier(final_res):
-    """Hiển thị toàn bộ kết quả hội chẩn 5 Agent trong War Room kèm 5 Tabs và nút tải file Markdown."""
+    """Hiển thị toàn bộ kết quả hội chẩn 5 Agent trong War Room kèm Timeline, 5 Tabs và nút tải file Markdown."""
     st.markdown(
         f"""
-        <div style="background:#f0fdf4; border:1px solid #86efac; border-left:4px solid #16a34a; padding:12px 18px; border-radius:8px; margin-bottom:18px;">
-            <b>🏛️ KẾT QUẢ HỘI CHẨN ĐA TÁC NHÂN (WAR ROOM):</b> Tiến trình xử lý khép kín hoàn tất trong <b>{final_res.total_latency:.2f} giây</b> qua 5 chuyên gia AI.
-        </div>
+        <article class="wr-dossier-banner">
+            <div style="color:#14532d; font-size:0.95rem;">
+                🏛️ <strong>HỒ SƠ HỘI CHẨN ĐA TÁC NHÂN HOÀN TẤT:</strong> Quy trình tham mưu 5 bước khép kín thực thi trong <strong>{final_res.total_latency:.2f} giây</strong>.
+            </div>
+            <div class="wr-latency-strip">
+                <span class="wr-latency-chip">⚖️ Agent 1 (Rà soát luật): {final_res.agent1_retrieval.latency:.1f}s</span>
+                <span class="wr-latency-chip">💡 Agent 2 (Phương án): {final_res.agent2_solutions.latency:.1f}s</span>
+                <span class="wr-latency-chip">🛡️ Agent 3 (Phản biện): {final_res.agent3_critique.latency:.1f}s</span>
+                <span class="wr-latency-chip">🖋️ Agent 4 (Dự thảo NĐ 30): {final_res.agent4_draft.latency:.1f}s</span>
+                <span class="wr-latency-chip">🎖️ Agent 5 (Ma trận MCDA): {final_res.agent5_evaluation.latency:.1f}s</span>
+            </div>
+        </article>
         """,
         unsafe_allow_html=True,
     )
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Agent 1: Căn cứ Pháp lý",
-        "Agent 2: Đề xuất Phương án",
-        "Agent 3: Phản biện Rủi ro",
-        "Agent 4: Dự thảo NĐ 30",
-        "Agent 5: Ma trận Quyết định",
+        "⚖️ Agent 1: Căn cứ Pháp lý",
+        "💡 Agent 2: Đề xuất Phương án",
+        "🛡️ Agent 3: Phản biện Rủi ro",
+        "📜 Agent 4: Dự thảo NĐ 30 (A4)",
+        "🎖️ Agent 5: Ma trận Quyết định",
     ])
 
     with tab1:
         st.markdown(f"#### {final_res.agent1_retrieval.title}")
-        st.caption(f"Thời gian: `{final_res.agent1_retrieval.latency:.2f}s` | Lọc bỏ căn cứ [DANGER]")
+        st.caption(f"⏱️ Thời gian: `{final_res.agent1_retrieval.latency:.2f}s` • Đã thẩm định qua Đồ thị Tri thức & đẩy lùi văn bản [DANGER]")
         st.markdown(final_res.agent1_retrieval.content)
 
     with tab2:
         st.markdown(f"#### {final_res.agent2_solutions.title}")
-        st.caption(f"Thời gian: `{final_res.agent2_solutions.latency:.2f}s` | Đề xuất Phương án Hòa giải & Chế tài")
+        st.caption(f"⏱️ Thời gian: `{final_res.agent2_solutions.latency:.2f}s` • Đối sánh Phương án Hòa giải cơ sở & Phương án Chế tài hành chính")
         st.markdown(final_res.agent2_solutions.content)
 
     with tab3:
         st.markdown(f"#### {final_res.agent3_critique.title}")
-        st.caption(f"Thời gian: `{final_res.agent3_critique.latency:.2f}s` | Đánh giá rủi ro tố tụng & thời hiệu")
+        st.caption(f"⏱️ Thời gian: `{final_res.agent3_critique.latency:.2f}s` • Rà soát thời hiệu (180 ngày / 06 tháng / 01 năm), chứng cứ & nguy cơ khiếu kiện ngược")
         st.markdown(final_res.agent3_critique.content)
 
     with tab4:
         st.markdown(f"#### {final_res.agent4_draft.title}")
-        st.caption(f"Thời gian: `{final_res.agent4_draft.latency:.2f}s` | Soạn thảo theo chuẩn Nghị định 30/2020/NĐ-CP")
+        st.caption(f"⏱️ Thời gian: `{final_res.agent4_draft.latency:.2f}s` • Định dạng trang in A4 theo chuẩn Nghị định 30/2020/NĐ-CP")
         st.markdown(
             f"""
             <div class="a4-document-container">
-                <div style="text-align:center; margin-bottom:14px;">
+                <div style="text-align:center; margin-bottom:0.9rem;">
                     <span class="a4-doc-badge">📜 DỰ THẢO VĂN BẢN CÔNG VỤ • CHUẨN THỂ THỨC NGHỊ ĐỊNH 30/2020/NĐ-CP</span>
                 </div>
-                <div class="a4-paper-sheet">
+                <div class="a4-paper-sheet" lang="vi">
                     {format_a4_html(final_res.agent4_draft.content)}
                 </div>
             </div>
@@ -910,19 +957,20 @@ def render_war_room_dossier(final_res):
 
     with tab5:
         st.markdown(f"#### {final_res.agent5_evaluation.title}")
-        st.caption(f"Thời gian: `{final_res.agent5_evaluation.latency:.2f}s` | Khuyến nghị tối ưu cho Cán bộ")
+        st.caption(f"⏱️ Thời gian: `{final_res.agent5_evaluation.latency:.2f}s` • Chấm điểm đa tiêu chí (MCDA) & Lộ trình hành động trình Cán bộ phê duyệt")
         st.markdown(final_res.agent5_evaluation.content)
 
     st.markdown("---")
-    # Nút tải toàn bộ hồ sơ
-    full_doc = f"# HỒ SƠ TƯ VẤN & THAM MƯU XỬ LÝ VỤ VIỆC PHÁP LÝ\n" \
-               f"**Hệ thống AI Đa tác nhân (War Room Multi-Agent System)**\n\n" \
-               f"## I. TÌNH HUỐNG / VỤ VIỆC ĐẦU VÀO\n{final_res.case_description}\n\n" \
-               f"## II. CĂN CỨ PHÁP LÝ HIỆN HÀNH (AGENT 1)\n{final_res.agent1_retrieval.content}\n\n" \
-               f"## III. PHÂN TÍCH & CÁC PHƯƠNG ÁN XỬ LÝ (AGENT 2)\n{final_res.agent2_solutions.content}\n\n" \
-               f"## IV. BÁO CÁO PHẢN BIỆN RỦI RO & KHẮC PHỤC (AGENT 3)\n{final_res.agent3_critique.content}\n\n" \
-               f"## V. DỰ THẢO VĂN BẢN CÔNG VỤ (AGENT 4)\n{final_res.agent4_draft.content}\n\n" \
-               f"## VI. MA TRẬN ĐÁNH GIÁ & KHUYẾN NGHỊ RA QUYẾT ĐỊNH (AGENT 5)\n{final_res.agent5_evaluation.content}\n"
+    full_doc = (
+        f"# HỒ SƠ TƯ VẤN & THAM MƯU XỬ LÝ VỤ VIỆC PHÁP LÝ\n"
+        f"**Hệ thống AI Đa tác nhân (War Room Multi-Agent System)**\n\n"
+        f"## I. TÌNH HUỐNG / VỤ VIỆC ĐẦU VÀO\n{final_res.case_description}\n\n"
+        f"## II. CĂN CỨ PHÁP LÝ HIỆN HÀNH (AGENT 1)\n{final_res.agent1_retrieval.content}\n\n"
+        f"## III. PHÂN TÍCH & CÁC PHƯƠNG ÁN XỬ LÝ (AGENT 2)\n{final_res.agent2_solutions.content}\n\n"
+        f"## IV. BÁO CÁO PHẢN BIỆN RỦI RO & KHẮC PHỤC (AGENT 3)\n{final_res.agent3_critique.content}\n\n"
+        f"## V. DỰ THẢO VĂN BẢN CÔNG VỤ (AGENT 4)\n{final_res.agent4_draft.content}\n\n"
+        f"## VI. MA TRẬN ĐÁNH GIÁ & KHUYẾN NGHỊ RA QUYẾT ĐỊNH (AGENT 5)\n{final_res.agent5_evaluation.content}\n"
+    )
 
     st.download_button(
         label="📥 Tải toàn bộ Hồ sơ Tham mưu Tư vấn (.md)",

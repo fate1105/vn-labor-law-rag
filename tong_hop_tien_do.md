@@ -1,5 +1,5 @@
 # 📊 Tổng hợp tiến độ — VN Labor Law RAG
-**Tác giả:** Trần Tấn Phúc | **GVHD:** TS. Nguyễn Trung Kiệt  
+**Tác giả:** Trần Tấn Phúc | **GVHD:** ThS. Nguyễn Trung Kiệt  
 **Cập nhật:** 21/11/2026
 
 ---
