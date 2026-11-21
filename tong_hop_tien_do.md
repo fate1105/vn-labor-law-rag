@@ -1,6 +1,6 @@
 # 📊 Tổng hợp tiến độ — VN Labor Law RAG
-**Tác giả:** Trần Tấn Phúc | **GVHD:** Nguyễn Trung Kiệt  
-**Cập nhật:** 29/10/2026
+**Tác giả:** Trần Tấn Phúc | **GVHD:** TS. Nguyễn Trung Kiệt  
+**Cập nhật:** 21/11/2026
 
 ---
 
@@ -11,9 +11,9 @@
 | Data Pipeline (Bước 1–5) | 5 | 5 | ✅ **100%** |
 | Baseline RAG (Bước 6) | 1 | 1 | ✅ **100%** |
 | Effect-Aware RAG (Bước 7–10) | 4 | 4 | ✅ **100%** |
-| Web UI / Backend (Bước 11) | 1 | 1 | ✅ **100%** |
-| Evaluation / Báo cáo (Bước 12–14) | 3 | 0 | ⏳ **0%** |
-| **Tổng cộng** | **14** | **11** | **~79%** |
+| War Room Multi-Agent & Web UI / API (Bước 11) | 1 | 1 | ✅ **100%** |
+| Evaluation / Báo cáo thực nghiệm (Bước 12–14) | 3 | 3 | ✅ **100%** |
+| **Tổng cộng** | **14** | **14** | ✅ **100%** |
 
 ---
 
@@ -188,27 +188,27 @@
 
 ---
 
-### 📁 Bước 11 — Giao diện Web Chatbot & Backend API (`src/web/`)
+### 📁 Bước 11 — War Room Đa Tác Nhân, Giao diện Web & Backend API (`src/agents/`, `src/web/`)
 
 | Thành phần | Chi tiết |
 |---|---|
-| Service Layer | `src/web/rag_service.py` (Singleton, lazy-loading, cache FAISS/Embedding/EffectChecker, cơ chế retry LLM) |
-| Web UI Chatbot | `src/web/app.py` (Streamlit hiện đại, chia 3 chế độ: Effect-Aware, Baseline, So sánh song song Side-by-Side) |
+| Multi-Agent War Room | `src/agents/war_room.py` & `prompts.py` — 5 Agent AI phối hợp khép kín, xuất dự thảo văn bản A4 chuẩn Nghị định 30/2020/NĐ-CP và ma trận MCDA |
+| Service Layer | `src/web/rag_service.py` (Singleton, chạy song song `ThreadPoolExecutor`, chia sẻ truy xuất FAISS, cache RAM `O(1)`, tự động fallback khi lỗi `429`) |
+| Web UI Chatbot | `src/web/app.py`, `comparison_ui.py`, `war_room_ui.py`, `benchmark_ui.py`, `ui_styles.py` |
 | Backend REST API | `src/web/api.py` (FastAPI với docs Swagger tự động tại `/docs`, CORS ready) |
-| Chức năng nổi bật | Chế độ so sánh Side-by-Side cho thấy rõ rủi ro trích dẫn luật cũ của Baseline vs sự chính xác của Effect-Aware |
-| Tra cứu nhanh | Hỗ trợ tra cứu cây phả hệ pháp lý của văn bản theo ID/Số hiệu ngay trên sidebar |
 | Cách chạy Web UI | `streamlit run src/web/app.py` |
 | Cách chạy API | `uvicorn src.web.api:app --reload --port 8000` |
 
 ---
 
-## ⏳ Còn lại (chưa làm)
+### 📁 Bước 12–14 — Bộ Kiểm Thử Chuẩn & Đánh Giá Định Lượng (`evaluation/`)
 
-| Bước | Nội dung | Ước lượng công |
-|---|---|---|
-| **Bước 12** | Xây bộ câu hỏi kiểm thử (`data/eval/`) | Nhỏ–Trung bình |
-| **Bước 13** | Script đánh giá so sánh Baseline vs Effect-Aware (`src/11_evaluate.py`) | Trung bình |
-| **Bước 14** | Hoàn thiện báo cáo + slide demo bảo vệ | Lớn |
+| Thành phần | Chi tiết |
+|---|---|
+| Golden Testset | `evaluation/golden_testset.json` — **25 câu hỏi thực tế** chia 3 nhóm (`repealed_trap`, `active_current`, `guidance_cross_ref`) |
+| Script Benchmark | `evaluation/run_benchmark.py` & `plot_results.py` — tự động đo Hit@K, MRR, Safety Shield và xuất biểu đồ PNG |
+| Kết quả chính | **MRR đạt 0.856** (tăng **+13.3%** so với Baseline `0.723`), **Hit@1 đạt 80.0%** (vs `56.0%`), **Hit@5 đạt 96.0%**, phát hiện **54 cờ DANGER** |
+| Báo cáo thực nghiệm | `evaluation/bao_cao_thuc_nghiem_dinh_luong.md` & Dashboard tích hợp trực tiếp trên Web UI |
 
 ---
 

@@ -52,19 +52,19 @@ Dưới đây là bảng số liệu thu được từ script benchmark tự đ�
 * Ở hệ thống Baseline RAG, khi người dùng hỏi các câu hỏi hiện hành (ví dụ: *Q12 về số ngày phép năm*, *Q13 về thâm niên tăng phép*, *Q15 về lương làm việc ban đêm*, *Q18 về kỷ luật lao động*), tìm kiếm FAISS thuần túy bị nhiễu bởi các điều khoản của Bộ luật Lao động 2012 cũ có độ tương đồng từ ngữ cao, đẩy văn bản hiện hành (BLLĐ 2019) xuống vị trí rank 2 hoặc rank 3 (khiến MRR nhóm này chỉ đạt **0.717**).
 * Khi qua mô-đun **Effect-Aware RAG**, cơ chế xếp hạng ưu tiên (`OK` > `WARNING` > `UNKNOWN` > `DANGER`) đã đẩy toàn bộ các đoạn của BLLĐ 2012 xuống đáy và nâng BLLĐ 2019 lên vị trí Top 1. Do đó, chỉ số **MRR của nhóm Luật hiện hành tăng vọt từ 0.717 lên 0.950 (+23.3%)**.
 
-![Biểu đồ MRR](fig3_mrr_by_category.png)
+![Biểu đồ MRR](figures/fig3_mrr_by_category.png)
 
 #### 4.2. "Lá chắn an toàn pháp lý" (Legal Safety Shield)
 * **Baseline RAG gặp rủi ro nghiêm trọng:** Trong 25 câu hỏi, có tới **73 đoạn văn bản hết hiệu lực** nằm trong Top 5 kết quả tìm kiếm được đưa thẳng vào context của LLM mà không có bất kỳ nhãn nhận diện nào. Đối với nhóm câu hỏi bẫy hiệu lực, trung bình mỗi câu hỏi có gần 3 đoạn văn bản cũ lọt vào Top 5.
 * **Effect-Aware RAG nhận diện chính xác:** Hệ thống đã truy vết đồ thị tri thức pháp lý và gán nhãn chính xác **54 đoạn mức DANGER** (hết hiệu lực hoàn toàn) cùng **56 đoạn mức WARNING** (sửa đổi, bổ sung), ngăn chặn tình trạng trả lời sai lệch hoặc trích dẫn luật cũ.
 
-![Biểu đồ Rủi ro Pháp lý](fig2_safety_risk_comparison.png)
+![Biểu đồ Rủi ro Pháp lý](figures/fig2_safety_risk_comparison.png)
 
 #### 4.3. Tổng quan Năng lực Truy xuất (Retrieval Performance)
-* Cả hai hệ thống đều duy trì tỷ lệ tìm kiếm chính xác cao với **Hit@5 đạt 96% - 100%**.
-* Effect-Aware RAG tuy hạ thấp các đoạn văn bản hết hiệu lực nhưng vẫn giữ vững tỷ lệ Hit@3 ở mức **88.0%** và đưa thứ hạng của văn bản đúng lên gần vị trí số 1 nhất có thể.
+* Cả hai hệ thống đều duy trì tỷ lệ tìm kiếm chính xác cao với **Hit@5 đạt 96.0%**.
+* Effect-Aware RAG tuy hạ thấp các đoạn văn bản hết hiệu lực nhưng vẫn giữ vững tỷ lệ Hit@3 ở mức **88.0%** và đưa thứ hạng của văn bản đúng lên gần vị trí số 1 nhất có thể (Hit@1 tăng từ **56.0%** lên **80.0%**).
 
-![Biểu đồ Tổng quan Retrieval](fig1_retrieval_metrics.png)
+![Biểu đồ Tổng quan Retrieval](figures/fig1_retrieval_metrics.png)
 
 ---
 

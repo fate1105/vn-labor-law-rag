@@ -1,7 +1,7 @@
 {
   "description": "Golden Testset đánh giá hệ thống hỏi đáp Pháp luật Lao động Việt Nam (Effect-Aware RAG vs Baseline RAG)",
   "version": "1.0",
-  "total_queries": 30,
+  "total_queries": 25,
   "categories": {
     "repealed_trap": "Câu hỏi chứa bẫy văn bản pháp luật đã hết hiệu lực, bị bãi bỏ hoặc sửa đổi thay thế",
     "active_current": "Câu hỏi về các quy định pháp luật lao động hiện hành",

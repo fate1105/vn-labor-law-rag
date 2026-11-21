@@ -31,6 +31,7 @@ Cách chạy độc lập (demo):
     python src/9_effect_checker.py "<doc_id>"
 """
 
+import pathlib
 import pickle
 import sqlite3
 from dataclasses import dataclass, field
@@ -40,9 +41,10 @@ from typing import Optional
 import pandas as pd
 import networkx as nx
 
-GRAPH_PICKLE = "data/graph/legal_graph.gpickle"
-GRAPH_DB = "data/graph/legal_graph.db"
-METADATA_PATH = "data/processed/chunk_metadata.parquet"
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
+GRAPH_PICKLE = str(PROJECT_ROOT / "data" / "graph" / "legal_graph.gpickle")
+GRAPH_DB = str(PROJECT_ROOT / "data" / "graph" / "legal_graph.db")
+METADATA_PATH = str(PROJECT_ROOT / "data" / "processed" / "chunk_metadata.parquet")
 
 # ── Trạng thái hiệu lực từ metadata gốc ──────────────────────────────────────
 # Ánh xạ giá trị chuỗi → mức độ cảnh báo

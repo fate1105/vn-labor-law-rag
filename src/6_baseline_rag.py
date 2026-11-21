@@ -24,6 +24,7 @@ Cách chạy:
 """
 
 import sys
+import pathlib
 import faiss
 import pandas as pd
 from pyvi import ViTokenizer
@@ -32,13 +33,14 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-load_dotenv()  # tự động đọc file .env ở thư mục gốc project
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
+load_dotenv(PROJECT_ROOT / ".env")  # tự động đọc file .env ở thư mục gốc project
 
 
 EMBED_MODEL_NAME = "bkai-foundation-models/vietnamese-bi-encoder"
 LLM_MODEL_NAME = "gemini-2.5-flash"  # nằm trong gói miễn phí của Gemini API
-INDEX_PATH = "data/index/faiss.index"
-METADATA_PATH = "data/processed/chunk_metadata.parquet"
+INDEX_PATH = str(PROJECT_ROOT / "data" / "index" / "faiss.index")
+METADATA_PATH = str(PROJECT_ROOT / "data" / "processed" / "chunk_metadata.parquet")
 TOP_K = 5
 
 SYSTEM_PROMPT = """Bạn là trợ lý tra cứu pháp luật lao động Việt Nam.

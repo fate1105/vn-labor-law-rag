@@ -21,11 +21,11 @@ Hệ thống tra cứu, tham mưu và hỗ trợ giải quyết tranh chấp ph�
 - **Giải pháp Effect-Aware:** 
   - Tích hợp Đồ thị tri thức pháp lý gồm **36,726 đỉnh** và **42,571 cạnh quan hệ** (sửa đổi, bổ sung, thay thế, bãi bỏ, hướng dẫn).
   - Tự động thẩm định trạng thái qua 4 cấp độ: `OK` (Còn hiệu lực), `WARNING` (Sửa đổi/Cảnh báo), `DANGER` (Bị thay thế/Hết hiệu lực), `UNKNOWN`.
-  - Thuật toán Reranking tự động loại bỏ các đoạn trích dẫn mang nhãn `DANGER`, ưu tiên văn bản hiện hành và cảnh báo tường minh đến người dùng trong thời gian duyệt đồ thị cực nhanh (**< 0.02 giây**).
+  - Thuật toán Reranking tự động hạ bậc ưu tiên các đoạn trích dẫn mang nhãn `DANGER` xuống cuối, đẩy văn bản hiện hành lên đầu và gắn cảnh báo tường minh đến người dùng trong thời gian duyệt đồ thị cực nhanh (**< 0.02 giây**).
 
 ### 2. 🏛️ Phòng Tác Chiến War Room Đa Tác Nhân (Multi-Agent System)
 Mô hình hóa quy trình xử lý công vụ tại cơ quan quản lý lao động qua 5 Agent AI chuyên môn hóa, phối hợp tuần tự và trực quan hóa sinh động:
-1. **Agent 1 — Rà soát Căn cứ Pháp lý:** Truy xuất cơ sở dữ liệu và loại bỏ triệt để các điều luật lỗi thời.
+1. **Agent 1 — Rà soát Căn cứ Pháp lý:** Truy xuất cơ sở dữ liệu, ưu tiên văn bản hiện hành và gắn cờ cảnh báo điều luật lỗi thời.
 2. **Agent 2 — Đề xuất Phương án Xử lý:** Lập 02 phương án giải quyết (Phương án 1: Hòa giải, thương lượng cơ sở; Phương án 2: Chế tài hành chính & Khởi kiện).
 3. **Agent 3 — Phản biện Rủi ro & Bịt kẽ hở:** Đóng vai trò đối lập, soi chiếu rủi ro về thời hiệu khiếu nại (180 ngày), trình tự thủ tục và yêu cầu bổ sung chứng cứ.
 4. **Agent 4 — Soạn thảo Văn bản Hành chính:** Tự động thiết kế biểu mẫu công vụ (Giấy mời làm việc, Biên bản hòa giải, Công văn kiến nghị) chuẩn thể thức **Nghị định 30/2020/NĐ-CP** trên khổ giấy A4.
@@ -33,9 +33,9 @@ Mô hình hóa quy trình xử lý công vụ tại cơ quan quản lý lao đ�
 
 ### 3. 📊 Kết Quả Thực Nghiệm Định Lượng (Benchmark Suite)
 Đánh giá so sánh trực diện giữa **Baseline RAG** và **Effect-Aware RAG** trên bộ dữ liệu kiểm thử chuẩn (Golden Testset 25 câu hỏi tình huống thực tế):
-- **Chỉ số MRR (Mean Reciprocal Rank):** Đạt **0.865** (tăng **+13.3%** so với Baseline RAG 0.763).
-- **Độ chính xác Top-1 (Hit@1):** Đạt **80.0%** (so với 60.0% của Baseline).
-- **Lá chắn an toàn pháp lý:** Baseline RAG dẫn chiếu sai **54/125** đoạn trích dẫn hết hiệu lực (tỷ lệ rủi ro 43.2%), trong khi Effect-Aware RAG đạt **0% rủi ro** (100% căn cứ đều đang còn hiệu lực thi hành).
+- **Chỉ số MRR (Mean Reciprocal Rank):** Đạt **0.856** so với **0.723** của Baseline RAG (**+13.3%** điểm tuyệt đối; riêng nhóm Luật hiện hành đạt **0.950**, tăng **+23.3%**).
+- **Độ chính xác Top-1 (Hit@1) & Độ phủ (Hit@5):** Hit@1 đạt **80.0%** (so với **56.0%** của Baseline), đồng thời bảo toàn Hit@5 ở mức **96.0%**.
+- **Lá chắn an toàn pháp lý:** Baseline RAG đưa thẳng **73 đoạn trích dẫn hết hiệu lực** vào Top-5 ngữ cảnh mà không có cảnh báo; trong khi Effect-Aware RAG tự động hạ ưu tiên và gắn cờ nhận diện chính xác **54 cờ `DANGER`** (hết hiệu lực toàn bộ) cùng **56 cờ `WARNING`** (sửa đổi/bổ sung), ngăn chặn tình trạng tư vấn nhầm luật cũ.
 
 ---
 
@@ -69,12 +69,14 @@ vn-labor-law-rag/
 │   │   ├── war_room.py
 │   │   └── prompts.py
 │   └── web/                 # Giao diện người dùng & API Service
-│       ├── app.py           # Streamlit Web App chính
+│       ├── app.py           # Streamlit Web App chính (Controller & Router)
+│       ├── comparison_ui.py # Giao diện đối chứng song song 2 cột RAG
 │       ├── war_room_ui.py   # Không gian phòng War Room 2D SVG & định dạng A4
 │       ├── ui_styles.py     # Hệ thống CSS giao diện hiện đại
 │       ├── benchmark_ui.py  # Dashboard hiển thị báo cáo thực nghiệm
 │       ├── rag_service.py   # Service layer điều phối FAISS, Graph & LLM
 │       └── api.py           # Backend REST API (FastAPI)
+├── LICENSE                  # Giấy phép mã nguồn mở MIT
 ├── requirements.txt         # Danh mục thư viện phụ thuộc
 └── README.md
 ```

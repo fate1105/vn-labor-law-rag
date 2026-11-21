@@ -11,9 +11,10 @@ import pandas as pd
 from pyvi import ViTokenizer
 from sentence_transformers import SentenceTransformer
 
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parent
 EMBED_MODEL = "bkai-foundation-models/vietnamese-bi-encoder"
-INDEX_PATH  = "data/index/faiss.index"
-META_PATH   = "data/processed/chunk_metadata.parquet"
+INDEX_PATH  = str(PROJECT_ROOT / "data" / "index" / "faiss.index")
+META_PATH   = str(PROJECT_ROOT / "data" / "processed" / "chunk_metadata.parquet")
 TOP_K       = 5
 
 TEST_QUERIES = [
@@ -36,7 +37,7 @@ print("  ✅ Embedding model loaded")
 print("🔄 Đang load EffectChecker...")
 _spec = importlib.util.spec_from_file_location(
     "effect_checker",
-    pathlib.Path("src/9_effect_checker.py"),
+    PROJECT_ROOT / "src" / "9_effect_checker.py",
 )
 _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)

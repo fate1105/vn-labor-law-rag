@@ -32,14 +32,15 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-load_dotenv()  # tự động đọc file .env ở thư mục gốc project
-
 # Import Effect Checker từ Tuần 11
 # (dùng importlib vì tên file bắt đầu bằng số)
 import importlib.util, pathlib
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
+load_dotenv(PROJECT_ROOT / ".env")
+
 _spec = importlib.util.spec_from_file_location(
     "effect_checker",
-    pathlib.Path(__file__).parent / "9_effect_checker.py",
+    pathlib.Path(__file__).resolve().parent / "9_effect_checker.py",
 )
 _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
@@ -48,8 +49,8 @@ EffectLevel = _mod.EffectLevel
 
 EMBED_MODEL_NAME = "bkai-foundation-models/vietnamese-bi-encoder"
 LLM_MODEL_NAME   = "gemini-2.5-flash"
-INDEX_PATH       = "data/index/faiss.index"
-METADATA_PATH    = "data/processed/chunk_metadata.parquet"
+INDEX_PATH       = str(PROJECT_ROOT / "data" / "index" / "faiss.index")
+METADATA_PATH    = str(PROJECT_ROOT / "data" / "processed" / "chunk_metadata.parquet")
 TOP_K_DEFAULT    = 7   # lấy nhiều hơn Baseline (5) vì một số chunk sẽ bị hạ ưu tiên
 
 SYSTEM_PROMPT = """Bạn là trợ lý tra cứu pháp luật lao động Việt Nam.
