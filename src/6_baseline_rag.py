@@ -102,7 +102,7 @@ Câu hỏi: {query}"""
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
             temperature=0.2,  # giữ thấp để câu trả lời bám sát ngữ cảnh, hạn chế bịa
-            max_output_tokens=1024,
+            max_output_tokens=8192,
         ),
     )
     return response.text

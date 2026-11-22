@@ -91,14 +91,17 @@ class WarRoomOrchestrator:
         system_prompt: str,
         user_message: str,
         temperature: float = 0.25,
-        max_output_tokens: int = 4096,
+        max_output_tokens: int = 16384,
     ) -> str:
-        """Thực thi gọi LLM chuyên biệt cho từng tác nhân."""
-        config = types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            temperature=temperature,
-            max_output_tokens=max_output_tokens,
-        )
+        """Thực thi gọi LLM chuyên biệt cho từng tác nhân (đủ token cho cả phần suy luận lẫn văn bản dài)."""
+        cfg_kwargs: Dict[str, Any] = {
+            "system_instruction": system_prompt,
+            "temperature": temperature,
+            "max_output_tokens": max_output_tokens,
+        }
+        if hasattr(types, "ThinkingConfig"):
+            cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=1024)
+        config = types.GenerateContentConfig(**cfg_kwargs)
         try:
             response = _call_gemini_with_retry(
                 client=self.client,

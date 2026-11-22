@@ -5,9 +5,15 @@ War Room Multi-Agent UI components, 2D SVG scene and dynamic dialogue helpers.
 import copy
 import html
 import json
+import os
+import pathlib
 import re
+import tempfile
+import time
 import streamlit as st
 import streamlit.components.v1 as components
+
+from src.web.docx_exporter import build_nd30_docx_bytes
 
 # ── Metadata của 5 Agent trong War Room ──────────────────────────────────────
 AGENTS_META = [
@@ -853,45 +859,151 @@ def render_office(placeholder, agent_states, action_msg, prev_states=None, scene
             components.html(html_content, height=600)
 
 
+_BR_RE = re.compile(r"(?i)(?:<br\s*/?>|&lt;br\s*/?&gt;)")
+_SAFE_TAG_RE = re.compile(r"&lt;(/?(?:b|strong|i|em|u))&gt;", flags=re.IGNORECASE)
+
+
+def _clean_llm_markdown(text: str) -> str:
+    """Làm sạch các thẻ <br> thô do LLM sinh ra trước khi đưa vào st.markdown chuẩn."""
+    if not text:
+        return ""
+    cleaned_lines = []
+    for line in text.split("\n"):
+        s = line.strip()
+        if s.startswith("|") and s.endswith("|") and s.count("|") >= 2:
+            cleaned_lines.append(_BR_RE.sub(" • ", line))
+        else:
+            cleaned_lines.append(_BR_RE.sub("\n", line))
+    return "\n".join(cleaned_lines)
+
+
+def _format_inline_a4(raw_text: str) -> str:
+    """Escape HTML an toàn nhưng chuyển đổi <br>, **bold**, *italic* và <u>/<b>/<i> hợp lệ cho trang A4."""
+    parts = _BR_RE.split(raw_text)
+    rendered_parts = []
+    for p in parts:
+        esc = html.escape(p)
+        esc = esc.replace("&amp;nbsp;", "&nbsp;")
+        esc = _SAFE_TAG_RE.sub(lambda m: f"<{m.group(1).lower()}>", esc)
+        esc = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", esc)
+        esc = re.sub(r"(?<!\*)\*([^\*\n]+?)\*(?!\*)", r"<em>\1</em>", esc)
+        rendered_parts.append(esc)
+    return "<br/>".join(rendered_parts)
+
+
+def _render_a4_table(table_lines: list[str]) -> str:
+    """Dựng bảng Markdown trong văn bản NĐ 30 thành bảng bố cục Quốc hiệu/Chữ ký (2 cột) hoặc bảng dữ liệu."""
+    rows = []
+    aligns = []
+    for tl in table_lines:
+        cells = [c.strip() for c in tl.strip().strip("|").split("|")]
+        if cells and all(re.match(r"^:?-{2,}:?$", c.replace(" ", "")) for c in cells if c != ""):
+            aligns = [
+                "center" if (c.startswith(":") and c.endswith(":"))
+                else "right" if c.endswith(":")
+                else "left"
+                for c in cells
+            ]
+            continue
+        rows.append(cells)
+
+    if not rows:
+        return ""
+
+    num_cols = max(len(r) for r in rows)
+    if num_cols == 2:
+        tr_html = []
+        for r in rows:
+            while len(r) < 2:
+                r.append("")
+            c0_up, c1_up = r[0].upper(), r[1].upper()
+            align0 = "center" if any(k in c0_up for k in ["ỦY BAN", "CÔNG TY", "SỞ ", "PHÒNG "]) else (aligns[0] if len(aligns) > 0 else "left")
+            align1 = "center" if any(k in c1_up for k in ["CỘNG HÒA", "CHỦ TỊCH", "GIÁM ĐỐC", "KT.", "TM.", "NGƯỜI LẬP", "ĐẠI DIỆN"]) else (aligns[1] if len(aligns) > 1 else "center")
+            tr_html.append(
+                f"<tr>"
+                f"<td style='width:46%; vertical-align:top; text-align:{align0}; padding:0.25rem 0.5rem; line-height:1.55;'>{_format_inline_a4(r[0])}</td>"
+                f"<td style='width:54%; vertical-align:top; text-align:{align1}; padding:0.25rem 0.5rem; line-height:1.55;'>{_format_inline_a4(r[1])}</td>"
+                f"</tr>"
+            )
+        return f"<table style='width:100%; border-collapse:collapse; margin:0.4rem 0 1rem 0;'>{''.join(tr_html)}</table>"
+
+    tr_html = []
+    for r_idx, r in enumerate(rows):
+        tag = "th" if r_idx == 0 else "td"
+        bg = "background:#f8fafc; font-weight:700;" if r_idx == 0 else ""
+        tds = []
+        for c_idx, cell in enumerate(r):
+            al = aligns[c_idx] if c_idx < len(aligns) else "left"
+            tds.append(f"<{tag} style='border:1px solid #475569; padding:0.4rem 0.6rem; text-align:{al}; {bg}'>{_format_inline_a4(cell)}</{tag}>")
+        tr_html.append(f"<tr>{''.join(tds)}</tr>")
+    return f"<table style='width:100%; border-collapse:collapse; margin:0.75rem 0;'>{''.join(tr_html)}</table>"
+
+
 def format_a4_html(text: str) -> str:
     """Định dạng nội dung văn bản hành chính theo khuôn mẫu A4 chuẩn Nghị định 30/2020/NĐ-CP."""
     if not text:
         return ""
-    lines = text.split("\n")
+
+    cleaned = text.strip()
+    cleaned = re.sub(r"^```[a-zA-Z]*\s*\n", "", cleaned)
+    cleaned = re.sub(r"\n```\s*$", "", cleaned)
+
+    raw_lines = cleaned.split("\n")
     out = []
-    for line in lines:
+    idx = 0
+    while idx < len(raw_lines):
+        line = raw_lines[idx]
         raw_strip = line.strip()
-        if not raw_strip:
-            out.append("<div style='min-block-size:0.75rem;'></div>")
-            continue
-        if raw_strip == "---":
-            out.append("<hr style='border:none; border-top:1px solid #cbd5e1; margin:1rem 0;'/>")
+
+        if raw_strip.startswith("|") and raw_strip.endswith("|") and raw_strip.count("|") >= 2:
+            tbl_block = []
+            while idx < len(raw_lines):
+                cur_s = raw_lines[idx].strip()
+                if cur_s.startswith("|") and cur_s.endswith("|") and cur_s.count("|") >= 2:
+                    tbl_block.append(cur_s)
+                    idx += 1
+                else:
+                    break
+            out.append(_render_a4_table(tbl_block))
             continue
 
-        if raw_strip.startswith("### "):
-            h = html.escape(raw_strip[4:])
-            out.append(f"<div style='font-size:1.125rem; font-weight:700; margin:0.9rem 0 0.4rem 0; text-align:center;'>{h}</div>")
-            continue
-        elif raw_strip.startswith("## "):
-            h = html.escape(raw_strip[3:])
-            out.append(f"<div style='font-size:1.22rem; font-weight:700; margin:1rem 0 0.5rem 0; text-align:center;'>{h}</div>")
-            continue
-        elif raw_strip.startswith("# "):
-            h = html.escape(raw_strip[2:])
-            out.append(f"<div style='font-size:1.32rem; font-weight:800; margin:1.1rem 0 0.6rem 0; text-align:center;'>{h}</div>")
-            continue
+        idx += 1
+        sub_lines = _BR_RE.split(line) if _BR_RE.search(line) else [line]
+        for sub in sub_lines:
+            sub_strip = sub.strip()
+            if not sub_strip:
+                out.append("<div style='min-block-size:0.65rem;'></div>")
+                continue
+            if sub_strip in ("---", "***", "___"):
+                out.append("<hr style='border:none; border-top:1px solid #cbd5e1; margin:0.9rem 0;'/>")
+                continue
 
-        l = html.escape(line)
-        l = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", l)
-        l = re.sub(r"\*(.+?)\*", r"<em>\1</em>", l)
+            if sub_strip.startswith("### "):
+                h = _format_inline_a4(sub_strip[4:])
+                out.append(f"<div style='font-size:1.125rem; font-weight:700; margin:0.85rem 0 0.35rem 0; text-align:center;'>{h}</div>")
+                continue
+            elif sub_strip.startswith("## "):
+                h = _format_inline_a4(sub_strip[3:])
+                out.append(f"<div style='font-size:1.2rem; font-weight:700; margin:0.95rem 0 0.45rem 0; text-align:center;'>{h}</div>")
+                continue
+            elif sub_strip.startswith("# "):
+                h = _format_inline_a4(sub_strip[2:])
+                out.append(f"<div style='font-size:1.28rem; font-weight:800; margin:1.05rem 0 0.55rem 0; text-align:center;'>{h}</div>")
+                continue
 
-        upper_l = raw_strip.upper()
-        if "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM" in upper_l or "ĐỘC LẬP - TỰ DO - HẠNH PHÚC" in upper_l:
-            out.append(f"<div style='text-align:center; font-weight:700; line-height:1.45;'>{l}</div>")
-        elif raw_strip.startswith("GIẤY MỜI") or raw_strip.startswith("CÔNG VĂN") or raw_strip.startswith("BIÊN BẢN") or raw_strip.startswith("QUYẾT ĐỊNH"):
-            out.append(f"<div style='text-align:center; font-size:1.2rem; font-weight:800; margin:0.9rem 0 0.4rem 0;'>{l}</div>")
-        else:
-            out.append(f"<div style='margin-bottom:0.4rem; line-height:1.68;'>{l}</div>")
+            l = _format_inline_a4(sub)
+            plain_up = re.sub(r"[\*\_\#\<\/buistrongem>]", "", sub_strip).strip().upper()
+
+            if "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM" in plain_up or "ĐỘC LẬP - TỰ DO - HẠNH PHÚC" in plain_up:
+                out.append(f"<div style='text-align:center; font-weight:700; line-height:1.45;'>{l}</div>")
+            elif any(plain_up.startswith(k) for k in ("GIẤY MỜI", "CÔNG VĂN", "BIÊN BẢN", "QUYẾT ĐỊNH", "THÔNG BÁO", "BÁO CÁO", "TỜ TRÌNH")):
+                out.append(f"<div style='text-align:center; font-size:1.18rem; font-weight:800; margin:0.9rem 0 0.4rem 0;'>{l}</div>")
+            elif sub_strip.startswith(("- ", "* ", "• ")):
+                item_html = _format_inline_a4(sub_strip[2:])
+                out.append(f"<div style='margin:0 0 0.35rem 1.25rem; line-height:1.68;'>– {item_html}</div>")
+            else:
+                out.append(f"<div style='margin-bottom:0.4rem; line-height:1.68;'>{l}</div>")
+
     return "\n".join(out)
 
 
@@ -926,21 +1038,55 @@ def render_war_room_dossier(final_res):
     with tab1:
         st.markdown(f"#### {final_res.agent1_retrieval.title}")
         st.caption(f"⏱️ Thời gian: `{final_res.agent1_retrieval.latency:.2f}s` • Đã thẩm định qua Đồ thị Tri thức & đẩy lùi văn bản [DANGER]")
-        st.markdown(final_res.agent1_retrieval.content)
+        st.markdown(_clean_llm_markdown(final_res.agent1_retrieval.content))
 
     with tab2:
         st.markdown(f"#### {final_res.agent2_solutions.title}")
         st.caption(f"⏱️ Thời gian: `{final_res.agent2_solutions.latency:.2f}s` • Đối sánh Phương án Hòa giải cơ sở & Phương án Chế tài hành chính")
-        st.markdown(final_res.agent2_solutions.content)
+        st.markdown(_clean_llm_markdown(final_res.agent2_solutions.content))
 
     with tab3:
         st.markdown(f"#### {final_res.agent3_critique.title}")
         st.caption(f"⏱️ Thời gian: `{final_res.agent3_critique.latency:.2f}s` • Rà soát thời hiệu (180 ngày / 06 tháng / 01 năm), chứng cứ & nguy cơ khiếu kiện ngược")
-        st.markdown(final_res.agent3_critique.content)
+        st.markdown(_clean_llm_markdown(final_res.agent3_critique.content))
 
     with tab4:
         st.markdown(f"#### {final_res.agent4_draft.title}")
-        st.caption(f"⏱️ Thời gian: `{final_res.agent4_draft.latency:.2f}s` • Định dạng trang in A4 theo chuẩn Nghị định 30/2020/NĐ-CP")
+        st.caption(f"⏱️ Thời gian: `{final_res.agent4_draft.latency:.2f}s` • Định dạng trang in A4 theo chuẩn Nghị định 30/2020/NĐ-CP (Times New Roman 13pt)")
+
+        docx_bytes = build_nd30_docx_bytes(final_res.agent4_draft.content)
+        is_windows_local = (os.name == "nt")
+
+        if is_windows_local:
+            col_w1, col_w2 = st.columns(2)
+            with col_w1:
+                if st.button("📝 Mở ngay bằng Microsoft Word", key="btn_open_word_local", use_container_width=True):
+                    try:
+                        out_path = pathlib.Path(tempfile.gettempdir()) / f"du_thao_nd30_{int(time.time())}.docx"
+                        out_path.write_bytes(docx_bytes)
+                        os.startfile(str(out_path))
+                        st.success(f"✅ Đã mở bản dự thảo chuẩn A4 bằng Microsoft Word (`{out_path.name}`)!")
+                    except Exception as ex:
+                        st.warning(f"⚠️ Không thể tự động mở Word ({ex}). Bạn hãy dùng nút Tải file Word (.docx) bên cạnh.")
+            with col_w2:
+                st.download_button(
+                    label="📥 Tải file Word (.docx) chuẩn NĐ 30",
+                    data=docx_bytes,
+                    file_name="du_thao_van_ban_nd30.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    key="btn_dl_docx_local",
+                    use_container_width=True,
+                )
+        else:
+            st.download_button(
+                label="📥 Tải file Word (.docx) chuẩn NĐ 30",
+                data=docx_bytes,
+                file_name="du_thao_van_ban_nd30.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                key="btn_dl_docx_cloud",
+                use_container_width=True,
+            )
+
         st.markdown(
             f"""
             <div class="a4-document-container">
@@ -958,7 +1104,7 @@ def render_war_room_dossier(final_res):
     with tab5:
         st.markdown(f"#### {final_res.agent5_evaluation.title}")
         st.caption(f"⏱️ Thời gian: `{final_res.agent5_evaluation.latency:.2f}s` • Chấm điểm đa tiêu chí (MCDA) & Lộ trình hành động trình Cán bộ phê duyệt")
-        st.markdown(final_res.agent5_evaluation.content)
+        st.markdown(_clean_llm_markdown(final_res.agent5_evaluation.content))
 
     st.markdown("---")
     full_doc = (

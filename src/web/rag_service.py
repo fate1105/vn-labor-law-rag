@@ -64,7 +64,7 @@ METADATA_PATH = PROJECT_ROOT / "data" / "processed" / "chunk_metadata.parquet"
 GRAPH_DB_PATH = PROJECT_ROOT / "data" / "graph" / "legal_graph.db"
 DEFAULT_EMBED_MODEL = "bkai-foundation-models/vietnamese-bi-encoder"
 DEFAULT_LLM_MODEL = "gemini-2.5-flash"
-FALLBACK_CANDIDATES = ["gemini-2.5-flash", "gemini-3.5-flash-lite"]
+FALLBACK_CANDIDATES = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.5-flash-lite"]
 
 BASELINE_SYSTEM_PROMPT = """Bạn là trợ lý tra cứu pháp luật lao động Việt Nam.
 Nhiệm vụ của bạn là giải đáp câu hỏi của người dùng dựa trên các đoạn văn bản pháp luật được cung cấp trong ngữ cảnh.
@@ -93,6 +93,22 @@ QUY TẮC QUAN TRỌNG VỀ HIỆU LỰC VĂN BẢN:
    - Trình bày mạch lạc, có cấu trúc gạch đầu dòng rõ ràng."""
 
 
+def _make_gen_config(
+    system_instruction: str,
+    temperature: float,
+    max_output_tokens: int = 16384,
+) -> types.GenerateContentConfig:
+    """Tạo GenerateContentConfig với hạn mức output rộng (16384) và giới hạn thinking_budget hợp lý để không bị cắt chữ."""
+    kwargs: Dict[str, Any] = {
+        "system_instruction": system_instruction,
+        "temperature": temperature,
+        "max_output_tokens": max_output_tokens,
+    }
+    if hasattr(types, "ThinkingConfig"):
+        kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=1024)
+    return types.GenerateContentConfig(**kwargs)
+
+
 def _call_gemini_with_retry(
     client: genai.Client,
     model: str,
@@ -101,22 +117,28 @@ def _call_gemini_with_retry(
     max_retries: int = 2,
 ) -> Any:
     """Gọi Gemini API với cơ chế retry và tự động chuyển model fallback khi hết hạn mức (429 RESOURCE_EXHAUSTED)."""
-    # Danh sách các mô hình thử nghiệm: ưu tiên model hiện tại, sau đó thử các model fallback
     models_to_try = [model] + [m for m in FALLBACK_CANDIDATES if m != model]
 
     last_err = None
     for current_model in models_to_try:
+        active_cfg = config
         for attempt in range(max_retries):
             try:
                 return client.models.generate_content(
                     model=current_model,
                     contents=contents,
-                    config=config,
+                    config=active_cfg,
                 )
             except Exception as e:
                 last_err = e
                 err_str = str(e)
-                # Nếu hết hạn mức ngày (429 RESOURCE_EXHAUSTED) hoặc model không hỗ trợ (404 NOT_FOUND)
+                if ("INVALID_ARGUMENT" in err_str or "thinking" in err_str.lower()) and getattr(active_cfg, "thinking_config", None) is not None:
+                    active_cfg = types.GenerateContentConfig(
+                        system_instruction=active_cfg.system_instruction,
+                        temperature=active_cfg.temperature,
+                        max_output_tokens=active_cfg.max_output_tokens,
+                    )
+                    continue
                 if "RESOURCE_EXHAUSTED" in err_str or "429" in err_str or "NOT_FOUND" in err_str:
                     print(f"⚠️ [Quota 429] Model {current_model} đạt giới hạn. Tự động chuyển model fallback tiếp theo...")
                     break
@@ -216,10 +238,10 @@ Câu hỏi: {query}"""
                 client=self.gemini_client,
                 model=model_name,
                 contents=user_message,
-                config=types.GenerateContentConfig(
+                config=_make_gen_config(
                     system_instruction=BASELINE_SYSTEM_PROMPT,
                     temperature=temperature,
-                    max_output_tokens=4096,  # Tăng lên 4096 để không bị cắt chữ
+                    max_output_tokens=16384,
                 ),
             )
             answer = response.text or "(Không có phản hồi từ LLM)"
@@ -273,10 +295,10 @@ Câu hỏi: {query}"""
                 client=self.gemini_client,
                 model=model_name,
                 contents=user_message,
-                config=types.GenerateContentConfig(
+                config=_make_gen_config(
                     system_instruction=EFFECT_AWARE_SYSTEM_PROMPT,
                     temperature=temperature,
-                    max_output_tokens=4096,  # Tăng lên 4096 để không bị cắt chữ
+                    max_output_tokens=16384,
                 ),
             )
             answer = response.text or "(Không có phản hồi từ LLM)"

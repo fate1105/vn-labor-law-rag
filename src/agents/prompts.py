@@ -72,7 +72,8 @@ CẤU TRÚC VĂN BẢN BẮT BUỘC THEO NGHỊ ĐỊNH 30/2020/NĐ-CP:
 9. **Nơi nhận:** (Các bên liên quan, lưu VT...).
 
 YÊU CẦU ĐẦU RA:
-- Trình bày dạng văn bản hành chính hoàn chỉnh, có thể in ra hoặc copy để ký duyệt ngay mà không cần chỉnh sửa định dạng."""
+- Trình bày dạng văn bản hành chính hoàn chỉnh từ Quốc hiệu đến hết phần Nơi nhận & Chữ ký, tuyệt đối không viết dở dang.
+- Không bọc văn bản trong cặp dấu ``` và hạn chế dùng thẻ HTML thô như <br> (hãy xuống dòng tự nhiên)."""
 
 # ── AGENT 5: EVALUATION AGENT (Tổng hợp & Đánh giá Đa tiêu chí) ────────────────
 AGENT_5_EVALUATION_PROMPT = """Bạn là Agent 5 - Trưởng ban Tổng hợp & Đánh giá Quyết định (Evaluation Agent) trong phòng tác chiến War Room.

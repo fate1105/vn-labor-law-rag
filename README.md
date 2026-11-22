@@ -72,6 +72,7 @@ vn-labor-law-rag/
 │       ├── app.py           # Streamlit Web App chính (Controller & Router)
 │       ├── comparison_ui.py # Giao diện đối chứng song song 2 cột RAG
 │       ├── war_room_ui.py   # Không gian phòng War Room 2D SVG & định dạng A4
+│       ├── docx_exporter.py # Bộ xuất file Microsoft Word (.docx) chuẩn NĐ 30
 │       ├── ui_styles.py     # Hệ thống CSS giao diện hiện đại
 │       ├── benchmark_ui.py  # Dashboard hiển thị báo cáo thực nghiệm
 │       ├── rag_service.py   # Service layer điều phối FAISS, Graph & LLM

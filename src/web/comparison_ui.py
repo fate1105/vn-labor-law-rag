@@ -3,7 +3,23 @@ Comparison UI components for side-by-side Baseline RAG vs Effect-Aware RAG.
 """
 
 import html
+import re
 import streamlit as st
+
+_BR_RE = re.compile(r"(?i)(?:<br\s*/?>|&lt;br\s*/?&gt;)")
+
+
+def _clean_md(text: str) -> str:
+    if not text:
+        return ""
+    out = []
+    for line in text.split("\n"):
+        s = line.strip()
+        if s.startswith("|") and s.endswith("|") and s.count("|") >= 2:
+            out.append(_BR_RE.sub(" • ", line))
+        else:
+            out.append(_BR_RE.sub("\n", line))
+    return "\n".join(out)
 
 
 def render_citation_box(text: str, level: str = "DEFAULT"):
@@ -80,7 +96,7 @@ def render_comparison_view(comp: dict):
                 """,
                 unsafe_allow_html=True,
             )
-        st.markdown(comp["baseline"]["answer"])
+        st.markdown(_clean_md(comp["baseline"]["answer"]))
         st.caption(f"⏱️ Thời gian nhánh Baseline: `{comp['baseline']['latency']:.2f}s`")
 
         with st.expander(f"📋 Căn cứ Baseline đã nạp ({len(comp['baseline']['chunks'])} đoạn trích)", expanded=False):
@@ -117,7 +133,7 @@ def render_comparison_view(comp: dict):
             """,
             unsafe_allow_html=True,
         )
-        st.markdown(eff_res["answer"])
+        st.markdown(_clean_md(eff_res["answer"]))
         st.caption(f"⏱️ Thời gian nhánh Effect-Aware: `{eff_res['latency']:.2f}s` (Duyệt đồ thị: `< 0.02s`)")
 
         with st.expander(f"📋 Căn cứ Effect-Aware sau Rerank & Thẩm định ({len(eff_res['llm_chunks'])} đoạn)", expanded=False):

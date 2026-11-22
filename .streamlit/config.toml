@@ -4,7 +4,6 @@ gatherUsageStats = false
 [server]
 runOnSave = false
 fileWatcherType = "none"
-fastReruns = true
 
 [client]
 toolbarMode = "minimal"

@@ -111,9 +111,9 @@ with st.sidebar:
     with st.expander("🛠️ Tham số Mô hình & Truy xuất", expanded=False):
         model_name = st.selectbox(
             "Mô hình LLM:",
-            options=["gemini-2.5-flash", "gemini-3.5-flash-lite"],
+            options=["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.5-flash-lite"],
             index=0,
-            help="gemini-2.5-flash phản hồi nhanh (~1s) và ổn định cao trên Google AI Studio.",
+            help="gemini-2.5-flash phản hồi nhanh (~1s) và ổn định cao; tự động chuyển sang 2.5-flash-lite / 3.5-flash-lite nếu hết quota 429.",
         )
         top_k_retrieve = st.slider("Top-K truy xuất FAISS:", min_value=3, max_value=12, value=7, step=1)
         top_k_llm = st.slider("Top-K đưa vào LLM:", min_value=3, max_value=7, value=5, step=1)
